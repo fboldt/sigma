@@ -2,10 +2,10 @@ import os
 from utils.rgb import rgb_composite
 
 def example_rgb():
-    # 1. Diretório contendo as bandas individuais
+    # Diretório contendo as bandas individuais
     input_path = './images/bandas' 
 
-    # 2. Diretório e nome do arquivo de saída para a imagem composta
+    # Diretório e nome do arquivo de saída para a imagem composta
     output_dir = './images' 
     output_filename = 'composicao_rgb.tif'
 
