@@ -1,7 +1,11 @@
 from utils.download import bands_download
+from utils.rgb import rgb_composite
 from datetime import date
+import os
+import glob
 
 def example_download_and_rgb():
+    # Download das bandas
     # Usuário cadastrado na plataforma do INPE
     user = 'izabelly.cristine.ic@gmail.com'
 
@@ -27,9 +31,22 @@ def example_download_and_rgb():
     output_dir = './images'
 
     # Chamada da função bands_download
-    red_band_path, green_band_path, blue_band_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
+    r_band_path, g_band_path, b_band_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
 
+    # Composição RGB
+    # Diretório e nome do arquivo de saída para a imagem composta
+    output_dir = './images' 
+    output_filename = 'composicao_rgb.tif'
 
+    output_file_path = os.path.join(output_dir, output_filename)
+
+    # Caminhos completos para as bandas vermelha, verde e azul
+    red_band_path = os.path.join(r_band_path)
+    green_band_path = os.path.join(g_band_path)
+    blue_band_path = os.path.join(b_band_path)
+
+    # 3. Chamada da função para compor a imagem RGB
+    rgb_composite(red_band_path, green_band_path, blue_band_path, output_file_path)
 
 if __name__ == "__main__":
     example_download_and_rgb()
