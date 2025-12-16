@@ -24,10 +24,10 @@ def example_download_and_rgb():
     final_date = date(2025, 7, 12)      # ano, mês, dia
 
     # Diretório para download das bandas
-    output_dir = './images'
+    output_file_path = './images'
 
     # Chamada da função bands_download
-    bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
+    bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_file_path)
 
 if __name__ == "__main__":
     example_download_and_rgb()

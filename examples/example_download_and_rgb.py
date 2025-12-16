@@ -2,7 +2,6 @@ from utils.download import bands_download
 from utils.rgb import rgb_batch_composite
 from datetime import date
 import os
-import glob # (Manter, se necessário para outras partes do seu código)
 
 def example_download_and_rgb():
     # Download das bandas
@@ -24,7 +23,7 @@ def example_download_and_rgb():
     max_products = 3        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
-    initial_date = date(2025, 1, 1)     # ano, mês, dia
+    initial_date = date(2025, 1, 1)      # ano, mês, dia
     final_date = date(2025, 7, 12)       # ano, mês, dia
 
     # Diretório para download das bandas
