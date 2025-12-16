@@ -17,7 +17,7 @@ def example_download_and_rgb():
 
     # Especificações dos produtos a retornar
     max_cloud = 10          # Cobertuda de nuvens (max)
-    max_products = 1        # Número de cenas por Dataset (max)
+    max_products = 1       # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
     initial_date = date(2025, 1, 1)     # ano, mês, dia
@@ -27,9 +27,7 @@ def example_download_and_rgb():
     output_dir = './images'
 
     # Chamada da função bands_download
-    red_band_path, green_band_path, blue_band_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
-
-
+    bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
 
 if __name__ == "__main__":
     example_download_and_rgb()

@@ -1,8 +1,8 @@
 from utils.download import bands_download
-from utils.rgb import rgb_composite
+from utils.rgb import rgb_batch_composite
 from datetime import date
 import os
-import glob
+import glob # (Manter, se necessário para outras partes do seu código)
 
 def example_download_and_rgb():
     # Download das bandas
@@ -21,32 +21,26 @@ def example_download_and_rgb():
 
     # Especificações dos produtos a retornar
     max_cloud = 10          # Cobertuda de nuvens (max)
-    max_products = 1        # Número de cenas por Dataset (max)
+    max_products = 3        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
     initial_date = date(2025, 1, 1)     # ano, mês, dia
-    final_date = date(2025, 7, 12)      # ano, mês, dia
+    final_date = date(2025, 7, 12)       # ano, mês, dia
 
     # Diretório para download das bandas
     output_dir = './images'
 
+    # Nome base para a composição RGB de saída
+    output_filename_base = 'TRUE_COLOR'
+
+    # Caminho completo
+    output_file_path = os.path.join(output_dir, output_filename_base)
+
     # Chamada da função bands_download
-    r_band_path, g_band_path, b_band_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
+    bands_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
 
-    # Composição RGB
-    # Diretório e nome do arquivo de saída para a imagem composta
-    output_dir = './images' 
-    output_filename = 'composicao_rgb.tif'
-
-    output_file_path = os.path.join(output_dir, output_filename)
-
-    # Caminhos completos para as bandas vermelha, verde e azul
-    red_band_path = os.path.join(r_band_path)
-    green_band_path = os.path.join(g_band_path)
-    blue_band_path = os.path.join(b_band_path)
-
-    # 3. Chamada da função para compor a imagem RGB
-    rgb_composite(red_band_path, green_band_path, blue_band_path, output_file_path)
+    # Chamada da função para compor a imagem RGB
+    rgb_batch_composite(bands_path, output_file_path)
 
 if __name__ == "__main__":
     example_download_and_rgb()
