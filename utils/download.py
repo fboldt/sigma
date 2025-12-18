@@ -3,28 +3,37 @@ from datetime import date
 import os
 import glob
 
-def bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir):
+def bands_download(params):
     # Instanciando o objeto com o usuário cadastrado na plataforma
-    api = Cbers4aAPI(user)
+    api = Cbers4aAPI(params['user'])
 
     # Busca por produtos
-    produtos = api.query(location=bbox,
-                         initial_date=initial_date,
-                         end_date=final_date,
-                         cloud=max_cloud,
-                         limit=max_products,
+    produtos = api.query(location=params['bbox'],
+                         initial_date=params['initial_date'],
+                         end_date=params['final_date'],
+                         cloud=params['max_cloud'],
+                         limit=params['max_products'],
                          collections=['CBERS4A_WPM_L4_DN']
                          )
     
     # Download dos produtos encontrados
+    bands = ['red', 'green', 'blue', 'nir', 'pan']
+
     api.download(products=produtos,
-             bands=['red', 'green', 'blue'],
-             threads=3,
-             outdir=output_dir,
+             bands=bands,
+             threads=len(bands),
+             outdir=params['output_dir'],
              with_folder=True
              )
     
     # Localização de produtos baixados
+    #all_bands_paths = bands_paths(params['output_dir'], produtos)
+    
+    #return all_bands_paths
+
+
+# Função para localizar os caminhos das bandas RGB dos produtos baixados
+def bands_paths(output_dir, produtos):
     all_bands_paths = [] 
     
     for produto_info in produtos['features']:
@@ -51,5 +60,5 @@ def bands_download(user, bbox, initial_date, final_date, max_cloud, max_products
              'blue': blue_band_path,
              'green': green_band_path
         })
-    
+        
     return all_bands_paths

@@ -28,10 +28,10 @@ def rgb_batch_composite(bands_path, output_file_path):
         
         # Nome do arquivo com a especificação referente à cena  
         output_filename = f"{base_filename}_{scene_id}.tif" 
-        
+        output_file_path = os.path.join(output_dir, output_filename)
+
         # Criação da composição RGB
-        rgbn_composite(red=scene['red'],
+        rgb_composite(red=scene['red'],
                        green=scene['green'],
                        blue=scene['blue'],
-                       filename=output_filename,
-                       outdir=output_dir)
+                       output_file_path=output_file_path)
