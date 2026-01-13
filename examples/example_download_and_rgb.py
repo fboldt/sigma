@@ -20,23 +20,36 @@ def example_download_and_rgb():
 
     # Especificações dos produtos a retornar
     max_cloud = 10          # Cobertuda de nuvens (max)
-    max_products = 3        # Número de cenas por Dataset (max)
+    max_products = 5        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
-    initial_date = date(2025, 1, 1)      # ano, mês, dia
-    final_date = date(2025, 7, 12)       # ano, mês, dia
+    initial_date = date(2025, 1, 1)     # ano, mês, dia
+    final_date = date(2025, 7, 12)      # ano, mês, dia
+
+    # Bandas para download
+    bands = ['red', 'green', 'blue'] # Opcional. Caso não definido, baixará as bandas vermelha, verde, azul, NIR e PAN
 
     # Diretório para download das bandas
     output_dir = './images'
 
-    # Nome base para a composição RGB de saída
-    output_filename_base = 'TRUE_COLOR'
-
-    # Caminho completo
-    output_file_path = os.path.join(output_dir, output_filename_base)
+    # Dicionário com as informações
+    params = {
+        'user': user,
+        'bbox': bbox,
+        'max_cloud': max_cloud,
+        'max_products': max_products,
+        'initial_date': initial_date,
+        'final_date': final_date,
+        'bands': bands,
+        'output_dir': output_dir
+    }
 
     # Chamada da função bands_download
-    bands_path = bands_download(user, bbox, initial_date, final_date, max_cloud, max_products, output_dir)
+    bands_path = bands_download(params)
+
+    # Composição RGB
+    # Nome completo do arquivo de saída
+    output_file_path = './images/TRUE_COLOR' 
 
     # Chamada da função para compor a imagem RGB
     rgb_batch_composite(bands_path, output_file_path)
