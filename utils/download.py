@@ -19,7 +19,6 @@ def bands_download(params):
     # Definido bandas para download
     bands = params.get('bands', ['red', 'green', 'blue', 'nir', 'pan'])
 
-    # Download dos produtos encontrados
     api.download(products=produtos,
              bands=bands,
              threads=len(bands),
