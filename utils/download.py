@@ -8,7 +8,7 @@ def bands_download(params):
     api = Cbers4aAPI(params['user'])
 
     # Busca por produtos
-    produtos = api.query(location=params['bbox'],
+    produtos = api.query(location=params.get('location') or params.get('bbox'),
                          initial_date=params['initial_date'],
                          end_date=params['final_date'],
                          cloud=params['max_cloud'],
