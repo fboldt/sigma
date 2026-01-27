@@ -3,7 +3,7 @@ from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
 
-def example_download():
+def example_download_es(bands=['red', 'green', 'blue', 'nir', 'pan']):
 
     # Usuário cadastrado na plataforma do INPE
     user = 'izabelly.cristine.ic@gmail.com'
@@ -23,9 +23,6 @@ def example_download():
     initial_date = date(2025, 1, 1)      # ano, mês, dia
     final_date = date(2025, 12, 31)      # ano, mês, dia
 
-    # Bandas para download
-    bands = ['red', 'green', 'blue', 'nir', 'pan'] # Opcional. Caso não definido, baixará as bandas vermelha, verde, azul, NIR e PAN
-
     # Diretório para download das bandas
     output_dir = './images'
 
@@ -37,12 +34,12 @@ def example_download():
         'max_products': max_products,
         'initial_date': initial_date,
         'final_date': final_date,
-        'bands': bands,
+        'bands': bands,                  # Por prdão, baixa todas as bandas (red, green, blue, NIR e PAN), mas pode ser definida pelo usuário
         'output_dir': output_dir
     }
 
     # Chamada da função bands_download
-    bands_download(params)
+    return bands_download(params)
 
 if __name__ == "__main__":
-    example_download()
+    example_download_es()
