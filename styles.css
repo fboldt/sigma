@@ -213,6 +213,48 @@ nav a {
   text-decoration: none;
   font-weight: 600;
 }
+/* ========================
+ VÍDEOS
+========================= */
+
+.videos {
+  background: #14323b;
+  color: white;
+}
+
+.videos-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 40px;
+}
+
+.videos-grid h1 {
+  font-size: 54px;
+}
+
+.videos-grid h2 {
+  margin-top: 15px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.videos-grid p {
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.videos-btn {
+  background: #6b8f7e;
+  color: white;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 18px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 
 /* ========================
  FOOTER
