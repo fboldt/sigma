@@ -11,7 +11,11 @@ def example_download_and_rgb_es():
     output_file_path = './images/TRUE_COLOR' 
 
     # Chamada da função para compor a imagem RGB
+    print(f"Iniciando composição RGB.")
+
     rgb_batch_composite(bands_path, output_file_path)
+
+    print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
 if __name__ == "__main__":
     example_download_and_rgb_es()

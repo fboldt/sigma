@@ -34,12 +34,19 @@ def example_download_es(bands=['red', 'green', 'blue', 'nir', 'pan']):
         'max_products': max_products,
         'initial_date': initial_date,
         'final_date': final_date,
-        'bands': bands,                  # Por prdão, baixa todas as bandas (red, green, blue, NIR e PAN), mas pode ser definida pelo usuário
+        'bands': bands,                  # Por padrão, baixa todas as bandas (red, green, blue, NIR e PAN), mas pode ser definida pelo usuário
         'output_dir': output_dir
     }
 
+    print(f"Iniciando download das bandas. Limite de {max_products} cena(s).")
+
     # Chamada da função bands_download
-    return bands_download(params)
+    result = bands_download(params)
+
+    print(f"Download finalizado! Arquivos salvos em: {output_dir}")
+
+    # Retorno da função
+    return result
 
 if __name__ == "__main__":
     example_download_es()

@@ -42,8 +42,12 @@ def example_download():
         'output_dir': output_dir
     }
 
+    print(f"Iniciando download das bandas. Limite de {max_products} cena(s).")
+
     # Chamada da função bands_download
     bands_download(params)
+
+    print(f"Download finalizado! Arquivos salvos em: {output_dir}")
 
 if __name__ == "__main__":
     example_download()
