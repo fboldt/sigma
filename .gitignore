@@ -1,2 +1,7 @@
 *.pyc
+<<<<<<< HEAD
 .venv/
+=======
+*.venv
+__pycache__/
+>>>>>>> main
