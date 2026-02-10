@@ -17,7 +17,11 @@ def example_rgb():
     blue_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250604_196_139_L4_BAND1.tif')
 
     # 3. Chamada da função para compor a imagem RGB
+    print(f"Iniciando composição RGB.")
+
     rgb_composite(red_band_path, green_band_path, blue_band_path, output_file_path)
+
+    print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
 if __name__ == "__main__":
     example_rgb()

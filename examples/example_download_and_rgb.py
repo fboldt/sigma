@@ -45,14 +45,22 @@ def example_download_and_rgb():
     }
 
     # Chamada da função bands_download
+    print(f"Iniciando download das bandas. Limite de {max_products} cena(s).")
+
     bands_path = bands_download(params)
+
+    print(f"Download finalizado. Arquivos salvos em: {output_dir}")
 
     # Composição RGB
     # Nome completo do arquivo de saída
     output_file_path = './images/TRUE_COLOR' 
 
     # Chamada da função para compor a imagem RGB
+    print(f"Iniciando composição RGB.")
+
     rgb_batch_composite(bands_path, output_file_path)
+
+    print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
 if __name__ == "__main__":
     example_download_and_rgb()
