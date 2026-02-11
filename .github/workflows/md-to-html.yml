@@ -1,0 +1,39 @@
+name: Convert Markdown to HTML
+
+on:
+  push:
+    paths:
+      - 'tutorials/**/*.md'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Convert Markdown files to HTML
+        run: |
+          for file in tutorials/**/*.md; do
+            if [ -f "$file" ]; then
+              output="${file%.md}.html"
+              pandoc "$file" -o "$output"
+              echo "Converted $file → $output"
+            fi
+          done
+
+      - name: Commit generated HTML files
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add tutorials/**/*.html
+          git diff --cached --quiet || git commit -m "Auto-generate HTML from Markdown"
+          git push
