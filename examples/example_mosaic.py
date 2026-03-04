@@ -1,4 +1,4 @@
-from utils.mosaic import mosaic_images
+from utils.mosaic import mosaic_scenes
 
 def example_moisaic():
     # Lista com os caminhos das imagens que você quer unir
@@ -8,10 +8,10 @@ def example_moisaic():
     ]
 
     # Nome do arquivo final
-    output_file_path = './images/mosaic.tif'
+    output_file_path = './images/MOSAIC.tif'
 
     # Chamada da função
-    mosaic_images(cenas, output_file_path)
+    mosaic_scenes(cenas, output_file_path)
 
 if __name__ == "__main__":
     example_moisaic()
