@@ -1,1 +1,7 @@
-.venv
+*.pyc
+<<<<<<< HEAD
+.venv/
+=======
+*.venv
+__pycache__/
+images_temp/
