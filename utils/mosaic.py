@@ -4,6 +4,7 @@ from rasterio.io import MemoryFile
 import numpy as np
 from scipy.ndimage import binary_erosion
 
+# Função para formar o mosaico
 def mosaic_scenes(files, output_file_path): 
     memory_files = []     
     files_data = []  
@@ -33,7 +34,7 @@ def mosaic_scenes(files, output_file_path):
     with rasterio.open(output_file_path, "w", **out_meta) as dest:
         dest.write(mosaic)
 
-
+# Função para aplicar padding nas cenas
 def apply_padding(file_path, cut_pixels=15):
     with rasterio.open(file_path) as src:
         data = src.read()

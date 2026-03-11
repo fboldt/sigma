@@ -3,23 +3,26 @@ from datetime import date
 import os
 import glob
 
-def bands_download(params):
+# Função para baixar produtos
+def bands_download(params, products=None):
     # Instanciando o objeto com o usuário cadastrado na plataforma
     api = Cbers4aAPI(params['user'])
 
-    # Busca por produtos
-    produtos = api.query(location=params.get('location') or params.get('bbox'),
-                         initial_date=params['initial_date'],
-                         end_date=params['final_date'],
-                         cloud=params['max_cloud'],
-                         limit=params['max_products'],
-                         collections=['CBERS4A_WPM_L4_DN']
-                         )
+    if products == None:
+        # Busca por produtos
+        products = api.query(location=params.get('location') or params.get('bbox'),
+                            initial_date=params['initial_date'],
+                            end_date=params['final_date'],
+                            cloud=params['max_cloud'],
+                            limit=params['max_products'],
+                            collections=['CBERS4A_WPM_L4_DN']
+                            )
     
     # Definido bandas para download
     bands = params.get('bands', ['red', 'green', 'blue', 'nir', 'pan'])
 
-    api.download(products=produtos,
+    # Download
+    api.download(products=products,
              bands=bands,
              threads=len(bands),
              outdir=params['output_dir'],
@@ -27,7 +30,7 @@ def bands_download(params):
              )
     
     # Localização de produtos baixados
-    all_bands_paths = bands_paths(params['output_dir'], produtos)
+    all_bands_paths = bands_paths(params['output_dir'], products)
     return all_bands_paths
 
 # Função para localizar os caminhos das bandas RGB dos produtos baixados

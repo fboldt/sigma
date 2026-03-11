@@ -18,6 +18,7 @@ def rgb_composite(red_band, green_band, blue_band, output_file_path):
 
 # Função para composição automatizada
 def rgb_batch_composite(bands_path, output_file_path):
+    all_rgb_paths = []
 
     # Extrai o diretório e o nome base
     output_dir = os.path.dirname(output_file_path)
@@ -35,3 +36,9 @@ def rgb_batch_composite(bands_path, output_file_path):
                        green_band=scene['green'],
                        blue_band=scene['blue'],
                        output_file_path=output_path)
+        
+        all_rgb_paths.append(output_path)
+
+    return all_rgb_paths
+        
+
