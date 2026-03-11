@@ -1,3 +1,4 @@
+import os
 from osgeo import gdal
 
 # Caminho para sua imagem CBERS-4A (ex: MUX, WPM ou PAN)

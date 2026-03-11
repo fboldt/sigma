@@ -87,31 +87,17 @@ nav a {
 }
 
 /* TUTORIAIS */
-.tutoriais {
-  background: #14323b;
-  color: white;
+#tutoriais {
+  background: white;
+  color: #14323b;
 }
 
 
-.tutoriais-grid {
+.tutorials-grid {
+  margin-top: 30px;
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
+  grid-template-columns: repeat(3, 1fr);
   gap: 40px;
-}
-
-.tutoriais h1 {
-  font-size: 54px;
-}
-
-.tutoriais h2 {
-  margin-top: 15px;
-  font-size: 28px;
-}
-
-.tutoriais p {
-  margin-top: 10px;
-  font-size: 17px;
 }
 
 .tutoriais-btn {
