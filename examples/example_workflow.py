@@ -54,7 +54,7 @@ def workflow_mosaic():
 
     # 4. Download dos produtos filrados
     print(f"Iniciando download das bandas.")
-    all_bands_path = bands_download(filter_products)
+    all_bands_path = bands_download(params, filter_products)
     print(f"Download finalizado! Arquivos salvos em: {output_dir}")
 
     # 5. Composição RGB
