@@ -92,11 +92,10 @@ nav a {
   color: #14323b;
 }
 
-
 .tutorials-grid {
-  margin-top: 30px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr auto;
+  align-items: center;
   gap: 40px;
 }
 
@@ -108,6 +107,10 @@ nav a {
   font-size: 18px;
   text-decoration: none;
   font-weight: 600;
+}
+
+.tutoriais-btn:hover {
+  opacity: 0.9;
 }
 
 /* EQUIPE */
