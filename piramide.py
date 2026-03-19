@@ -1,19 +1,13 @@
-import os
-from osgeo import gdal
+import rasterio
+from rasterio.enums import Resampling
 
-# Caminho para sua imagem CBERS-4A (ex: MUX, WPM ou PAN)
-caminho_tif = "C:/caminho/para/sua/imagem_cbers.tif"
+caminho_tif = "ifes_resultado_pansharpening_raiz.tif"
+fatores = [2, 4, 8, 16, 32]
 
-# Abre o dataset em modo de escrita (1)
-ds = gdal.Open(caminho_tif, 1)
-
-# Define os níveis de escala (geralmente potências de 2)
-niveis = [2, 4, 8, 16, 32, 64]
-
-# Constrói as pirâmides
-# O algoritmo 'AVERAGE' é ótimo para dados ópticos/contínuos
-ds.BuildOverviews("AVERAGE", niveis)
-
-# Fecha o dataset para salvar as alterações
-ds = None
-print("Pirâmides geradas com sucesso!")
+# O segredo é o modo 'r+' (abre para leitura e permite escrita)
+with rasterio.open(caminho_tif, mode='r+') as dst:
+    print(f"Gerando pirâmides para: {caminho_tif}")
+    # Agora o objeto 'dst' terá o atributo build_overviews
+    dst.build_overviews(fatores, Resampling.average)
+    
+print("Sucesso! O arquivo .ovr foi criado ou o .tif foi atualizado.")
