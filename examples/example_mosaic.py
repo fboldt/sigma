@@ -3,8 +3,14 @@ from utils.mosaic import mosaic_scenes
 def example_moisaic():
     # Lista com os caminhos das imagens que você quer unir
     cenas = [
+        './images/TRUE_COLOR_CBERS4A_WPM19513720250609ETC2.tif',
+        './images/TRUE_COLOR_CBERS4A_WPM19513820250609ETC2.tif',
+        './images/TRUE_COLOR_CBERS4A_WPM19614020251006ETC2.tif',
+        './images/TRUE_COLOR_CBERS4A_WPM19713620250630ETC2.tif',
+        './images/TRUE_COLOR_CBERS4A_WPM19713720250630ETC2.tif',
         './images/TRUE_COLOR_CBERS4A_WPM19713820250630ETC2.tif',
-        './images/TRUE_COLOR_CBERS4A_WPM19613920250604ETC2.tif'
+        './images/TRUE_COLOR_CBERS4A_WPM19713920250630ETC2.tif',
+        './images/TRUE_COLOR_CBERS4A_WPM19714020250630ETC2.tif'
     ]
 
     # Nome do arquivo final

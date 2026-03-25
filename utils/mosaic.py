@@ -3,6 +3,7 @@ from rasterio.merge import merge
 from rasterio.io import MemoryFile
 import numpy as np
 from scipy.ndimage import binary_erosion
+from scipy.ndimage import binary_fill_holes
 
 # Função para formar o mosaico
 def mosaic_scenes(files, output_file_path): 
@@ -36,24 +37,26 @@ def mosaic_scenes(files, output_file_path):
 
 # Função para aplicar padding nas cenas
 def apply_padding(file_path, cut_pixels=15):
-    with rasterio.open(file_path) as src:
-        data = src.read()
+   with rasterio.open(file_path) as src:
+           data = src.read()
+           profile = src.profile.copy()
 
-        # Cópia do profile
-        profile = src.profile.copy()
+           # Máscara de validade (onde todas as bandas > 0)
+           mask = np.all(data > 0, axis=0)
+          
+           # Preenchimento dos vãos internos
+           mask_filled = binary_fill_holes(mask)
+          
+            # Erosão da borda externa
+           mask_erosion = binary_erosion(mask_filled, iterations=cut_pixels)
+          
+           # Aplicamos a máscara de volta no dado original
+           for i in range(data.shape[0]):
+               data[i][~mask_erosion] = 0
 
-        # Máscara de validade (onde todas as bandas > 0)
-        mask = np.all(data > 0, axis=0)
-        
-        # Erosão para remover a rebarba
-        mask_erosion = binary_erosion(mask, iterations=cut_pixels)
-        
-        for i in range(data.shape[0]):
-            data[i][~mask_erosion] = 0
-
-        # Cria arquivo em memória
-        padding_file = MemoryFile()
-        with padding_file.open(**profile) as mem_dst:
-            mem_dst.write(data)
-        
-        return padding_file
+           # Cria arquivo em memória
+           padding_file = MemoryFile()
+           with padding_file.open(**profile) as mem_dst:
+               mem_dst.write(data)
+          
+           return padding_file
