@@ -1,13 +1,35 @@
 import rasterio
 from rasterio.enums import Resampling
+import os
+import shutil # Biblioteca para copiar arquivos
 
-caminho_tif = "ifes_resultado_pansharpening_raiz.tif"
-fatores = [2, 4, 8, 16, 32]
+def gerar_copia_com_piramides(caminho_original, fatores=[2, 4, 8, 16, 32]):
+    # 1. Criar o nome do novo arquivo (ex: imagem_com_py.tif)
+    nome_base, extensao = os.path.splitext(caminho_original)
+    caminho_novo = f"{nome_base}_com_piramides{extensao}"
 
-# O segredo é o modo 'r+' (abre para leitura e permite escrita)
-with rasterio.open(caminho_tif, mode='r+') as dst:
-    print(f"Gerando pirâmides para: {caminho_tif}")
-    # Agora o objeto 'dst' terá o atributo build_overviews
-    dst.build_overviews(fatores, Resampling.average)
-    
-print("Sucesso! O arquivo .ovr foi criado ou o .tif foi atualizado.")
+    # 2. Verificar se o arquivo original existe
+    if not os.path.exists(caminho_original):
+        print(f"Erro: O arquivo '{caminho_original}' não foi encontrado.")
+        return
+
+    try:
+        # 3. Copiar o arquivo original para o novo caminho
+        # Isso garante que o original fique intacto
+        shutil.copy2(caminho_original, caminho_novo)
+        print(f"Cópia criada: {os.path.basename(caminho_novo)}")
+
+        # 4. Abrir a CÓPIA para gerar as pirâmides
+        with rasterio.open(caminho_novo, mode='r+') as dst:
+            dst.build_overviews(fatores, Resampling.average)
+            dst.update_tags(ns='rio_utils', overviews=str(fatores))
+            
+            print(f"Sucesso! Pirâmides adicionadas à cópia.")
+            return caminho_novo # Devolve o caminho do arquivo novo
+
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
+
+# --- Exemplo de uso ---
+arquivo_antigo = "ifes_resultado_pansharpening_raiz01.tif"
+novo_arquivo = gerar_copia_com_piramides(arquivo_antigo)
