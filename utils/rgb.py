@@ -1,6 +1,7 @@
 import os
 from cbers4asat.tools import rgbn_composite
 import rasterio as rio
+from osgeo import gdal
 
 # Função para composição manual
 def rgb_composite(red_band, green_band, blue_band, output_file_path):
@@ -35,3 +36,17 @@ def rgb_batch_composite(bands_path, output_file_path):
                        green_band=scene['green'],
                        blue_band=scene['blue'],
                        output_file_path=output_path)
+
+
+def create_unified_mosaic(input_dir, output_name):
+    # Lista todos os arquivos RGB gerados
+    files_to_mosaic = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.tif')]
+    
+    # Opções para o Mosaico: 
+    # -cutline: pode usar para cortar no seu BBox exato
+    # -dstnodata 0: remove as bordas pretas/brancas inúteis
+    gdal.Warp(output_name, files_to_mosaic, format='GTiff', dstNodata=0)
+    
+    print(f"Mosaico unificado salvo em: {output_name}")
+
+# Chame esta função no final do seu __main__
