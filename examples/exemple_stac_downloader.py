@@ -26,6 +26,5 @@ if __name__ == "__main__":
     for item in itens:
         if 'tci' in item.assets:
             url_tci = item.assets['tci'].href 
-            
-            # Executa o download (o downloader atualizado já retenta e retoma se cair)
+            print(f"Iniciando download de: {item.id}")
             baixar_asset(url_tci, pasta_saida)

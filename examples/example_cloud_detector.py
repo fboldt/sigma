@@ -1,13 +1,14 @@
 import os
 import pandas as pd
+from datetime import datetime
 
 from utils.cloud_detector import calcular_nuvens_tci
 
 
-bbox_interesse = [
+'''bbox_interesse = [
     -41.1779558, -20.0230143,
     -40.9339558, -19.7790143
-]
+]'''
 
 pasta_imagens = "imagens_cbers4a"
 
@@ -22,13 +23,14 @@ for nome_arquivo in os.listdir(pasta_imagens):
 
     caminho = os.path.join(pasta_imagens, nome_arquivo)
 
-    print(f"Analisando: {nome_arquivo}")
+    print(f"{datetime.now()} - Analisando: {nome_arquivo}")
 
     try:
         resultado = calcular_nuvens_tci(
             caminho_imagem=caminho,
-            bbox_wgs84=bbox_interesse,
-            salvar_mascara=True
+            bbox_wgs84=None,
+            salvar_mascara=True,
+            tamanho_bloco=2048
         )
 
         resultados.append(resultado)
