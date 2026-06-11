@@ -1,6 +1,10 @@
 import os
 import pandas as pd
 from datetime import datetime
+import sys
+import shutil
+pasta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, pasta_raiz)
 
 from utils.cloud_detector import calcular_nuvens_tci
 
@@ -30,13 +34,19 @@ for nome_arquivo in os.listdir(pasta_imagens):
             caminho_imagem=caminho,
             bbox_wgs84=None,
             salvar_mascara=True,
-            tamanho_bloco=2048
+            tamanho_bloco=2048,
+            salvar_blocos=True
         )
 
         resultados.append(resultado)
 
         print(f"Nuvens: {resultado['percentual_nuvem']:.2f}%")
-
+        if resultado["percentual_nuvem"] <= 3:
+            destino = os.path.join(
+                "C:/Users/Julia Almeida/sigma/teste_imagens",
+                os.path.basename(caminho)
+            )
+            shutil.copy(caminho, destino)
     except Exception as erro:
         print(f"Erro ao analisar {nome_arquivo}: {erro}")
 
