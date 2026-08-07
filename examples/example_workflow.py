@@ -22,7 +22,7 @@ def workflow_mosaic():
     
     # Especificações dos produtos a retornar
     max_cloud = 0            # Cobertura de nuvens (max)
-    max_products =  10       # Número de cenas por Dataset (max)
+    max_products =  5       # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
     initial_date = date(2024, 1, 1)      # ano, mês, dia
@@ -65,7 +65,7 @@ def workflow_mosaic():
     print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")
 
     # 6. Formação do mosaico
-    output_file_path='./images/MOSAIC_NOVO'
+    output_file_path='./images/MOSAICO_EXEMPLO'
     print(f'Iniciando formação do mosaico.')
     mosaic_scenes(files, output_file_path)
     print(f'Processo concluído! Mosaico salvo em: {output_file_path}')
