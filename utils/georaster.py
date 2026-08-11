@@ -1,110 +1,26 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterator, Sequence
+from typing import Sequence
 
 import math
 import numpy as np
 import rasterio as rio
-from rasterio.enums import ColorInterp, Resampling
-from rasterio.merge import merge
-from rasterio.vrt import WarpedVRT
-from rasterio.warp import calculate_default_transform, reproject
+from rasterio.enums import Resampling
+from rasterio.merge import copy_count, copy_sum, merge
+from rasterio.transform import Affine
+from rasterio.warp import calculate_default_transform, reproject, transform_bounds
 from rasterio.windows import Window
-from rasterio.windows import from_bounds
 from rasterio.windows import transform as window_transform
-from scipy.ndimage import gaussian_filter
 
-EPSILON = 1e-6
-LUMINANCE_WEIGHTS = np.array([0.299, 0.587, 0.114], dtype=np.float32)
-
-
-def _dtype_scale(dtype: str | np.dtype) -> float:
-    dtype = np.dtype(dtype)
-    if np.issubdtype(dtype, np.integer):
-        return float(np.iinfo(dtype).max)
-    return 1.0
-
-
-def _dataset_scale(dataset: rio.io.DatasetReader, indexes: Sequence[int]) -> float:
-    scale = _dtype_scale(dataset.dtypes[0])
-
-    if scale != 1.0:
-        return scale
-
-    sample_height = min(128, dataset.height)
-    sample_width = min(128, dataset.width)
-    sample = dataset.read(
-        indexes,
-        out_shape=(len(indexes), sample_height, sample_width),
-        masked=True,
-    ).astype(np.float32)
-
-    if sample.count() == 0:
-        return 1.0
-
-    return 65535.0 if float(sample.max()) > 1.5 else 1.0
-
-
-def _recommended_block_size(size: int, default: int = 512) -> int | None:
-    if size < 16:
-        return None
-    return max(16, min(default, (size // 16) * 16))
-
-
-def _apply_tiff_layout(profile: dict, width: int, height: int) -> dict:
-    profile.pop("blockxsize", None)
-    profile.pop("blockysize", None)
-    profile["compress"] = "deflate"
-    profile["BIGTIFF"] = "IF_SAFER"
-
-    blockx = _recommended_block_size(width)
-    blocky = _recommended_block_size(height)
-
-    if blockx is not None and blocky is not None:
-        profile["tiled"] = True
-        profile["blockxsize"] = blockx
-        profile["blockysize"] = blocky
-    else:
-        profile["tiled"] = False
-
-    return profile
-
-
-def _round_window(window: Window) -> Window:
-    return window.round_offsets().round_lengths()
-
-
-def _iter_windows(base_window: Window, tile_size: int) -> Iterator[Window]:
-    row_end = int(base_window.row_off + base_window.height)
-    col_end = int(base_window.col_off + base_window.width)
-
-    for row_off in range(int(base_window.row_off), row_end, tile_size):
-        for col_off in range(int(base_window.col_off), col_end, tile_size):
-            height = min(tile_size, row_end - row_off)
-            width = min(tile_size, col_end - col_off)
-            yield Window(col_off=col_off, row_off=row_off, width=width, height=height)
-
-
-def _intersection_bounds(datasets: Sequence[rio.io.DatasetReader]) -> tuple[float, float, float, float]:
-    left = max(ds.bounds.left for ds in datasets)
-    bottom = max(ds.bounds.bottom for ds in datasets)
-    right = min(ds.bounds.right for ds in datasets)
-    top = min(ds.bounds.top for ds in datasets)
-
-    if left >= right or bottom >= top:
-        raise ValueError("As bandas nao possuem intersecao espacial suficiente.")
-
-    return left, bottom, right, top
-
-
-def intersection_window(
-    reference: rio.io.DatasetReader,
-    datasets: Sequence[rio.io.DatasetReader],
-) -> Window:
-    full_window = Window(0, 0, reference.width, reference.height)
-    window = _round_window(from_bounds(*_intersection_bounds(datasets), transform=reference.transform))
-    return full_window.intersection(window)
+from .pansharpening_core import pansharpen_hsv_tiled
+from .raster_common import (
+    EPSILON,
+    _apply_colorinterp,
+    _apply_tiff_layout,
+    _iter_windows,
+    intersection_window,
+)
 
 
 def _read_reprojected_band(
@@ -183,209 +99,9 @@ def stack_rgb_aligned(
 
         with rio.open(output_path, "w", **profile) as dst:
             dst.write(stacked)
+            _apply_colorinterp(dst)
 
     return output_path
-
-
-def _sample_scene_stats(
-    pan_ds: rio.io.DatasetReader,
-    ms_ds: rio.io.DatasetReader,
-    analysis_window: Window,
-    pan_base_window: Window,
-    tile_size: int,
-    sample_stride: int,
-) -> tuple[float, float, float, float]:
-    pan_scale = _dataset_scale(pan_ds, [1])
-    ms_scale = _dataset_scale(ms_ds, [1, 2, 3])
-
-    pan_sum = 0.0
-    pan_sum_sq = 0.0
-    val_sum = 0.0
-    val_sum_sq = 0.0
-    valid_count = 0
-
-    for idx, window in enumerate(_iter_windows(analysis_window, tile_size)):
-        if idx % max(sample_stride, 1) != 0:
-            continue
-
-        pan_window = Window(
-            col_off=pan_base_window.col_off + window.col_off,
-            row_off=pan_base_window.row_off + window.row_off,
-            width=window.width,
-            height=window.height,
-        )
-
-        pan_raw = pan_ds.read(1, window=pan_window)
-        pan_mask = pan_ds.read_masks(1, window=pan_window) > 0
-        pan = pan_raw.astype(np.float32) / pan_scale
-
-        rgb_raw = ms_ds.read([1, 2, 3], window=window)
-        rgb_mask = np.all(ms_ds.read_masks([1, 2, 3], window=window) > 0, axis=0)
-        rgb = np.clip(np.moveaxis(rgb_raw.astype(np.float32) / ms_scale, 0, -1), 0.0, 1.0)
-        intensity = np.tensordot(rgb, LUMINANCE_WEIGHTS, axes=([2], [0]))
-
-        valid = np.isfinite(pan) & np.isfinite(intensity) & np.all(np.isfinite(rgb), axis=2)
-        valid &= pan_mask
-        valid &= rgb_mask
-
-        if not np.any(valid):
-            continue
-
-        pan_valid = pan[valid]
-        value_valid = intensity[valid]
-        pan_sum += float(pan_valid.sum())
-        pan_sum_sq += float((pan_valid * pan_valid).sum())
-        val_sum += float(value_valid.sum())
-        val_sum_sq += float((value_valid * value_valid).sum())
-        valid_count += int(valid.sum())
-
-    if valid_count == 0:
-        raise ValueError("Nao foi possivel calcular estatisticas validas para o pansharpening.")
-
-    pan_mean = pan_sum / valid_count
-    pan_std = math.sqrt(max((pan_sum_sq / valid_count) - (pan_mean * pan_mean), EPSILON))
-    value_mean = val_sum / valid_count
-    value_std = math.sqrt(max((val_sum_sq / valid_count) - (value_mean * value_mean), EPSILON))
-
-    return pan_mean, pan_std, value_mean, value_std
-
-
-def pansharpen_hsv_tiled(
-    multispectral_path: str,
-    panchromatic_path: str,
-    output_path: str,
-    tile_size: int = 2048,
-    sample_stride: int = 4,
-    crop_to_intersection: bool = True,
-    detail_strength: float = 0.65,
-) -> Path:
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-
-    with rio.open(panchromatic_path) as pan_ds, rio.open(multispectral_path) as ms_source:
-        if pan_ds.crs is None or ms_source.crs is None:
-            raise ValueError("PAN e RGB precisam estar georreferenciados.")
-        if ms_source.count < 3:
-            raise ValueError("O raster multiespectral precisa ter pelo menos 3 bandas.")
-
-        analysis_window = (
-            intersection_window(pan_ds, [pan_ds, ms_source])
-            if crop_to_intersection
-            else Window(0, 0, pan_ds.width, pan_ds.height)
-        )
-        out_transform = window_transform(analysis_window, pan_ds.transform)
-
-        with WarpedVRT(
-            ms_source,
-            crs=pan_ds.crs,
-            transform=out_transform,
-            width=int(analysis_window.width),
-            height=int(analysis_window.height),
-            resampling=Resampling.bilinear,
-        ) as ms_vrt:
-            pan_mean, pan_std, value_mean, value_std = _sample_scene_stats(
-                pan_ds=pan_ds,
-                ms_ds=ms_vrt,
-                analysis_window=Window(0, 0, ms_vrt.width, ms_vrt.height),
-                pan_base_window=analysis_window,
-                tile_size=tile_size,
-                sample_stride=sample_stride,
-            )
-
-            pan_scale = _dataset_scale(pan_ds, [1])
-            ms_scale = _dataset_scale(ms_source, [1, 2, 3])
-            resolution_ratio = max(
-                abs(ms_source.res[0] / pan_ds.res[0]),
-                abs(ms_source.res[1] / pan_ds.res[1]),
-            )
-            blur_sigma = max(1.0, resolution_ratio / 2.0)
-            blur_halo = int(math.ceil(blur_sigma * 4.0))
-
-            output_dtype = np.dtype(ms_source.dtypes[0])
-            output_scale = _dataset_scale(ms_source, [1, 2, 3])
-
-            profile = pan_ds.profile.copy()
-            profile.update(
-                driver="GTiff",
-                count=3,
-                dtype=output_dtype.name,
-                width=int(analysis_window.width),
-                height=int(analysis_window.height),
-                transform=out_transform,
-                nodata=ms_source.nodata if ms_source.nodata is not None else 0,
-            )
-            profile = _apply_tiff_layout(
-                profile, int(analysis_window.width), int(analysis_window.height)
-            )
-
-            with rio.open(output, "w", **profile) as dst:
-                for target_window in _iter_windows(
-                    Window(0, 0, analysis_window.width, analysis_window.height), tile_size
-                ):
-                    pan_window = Window(
-                        col_off=analysis_window.col_off + target_window.col_off,
-                        row_off=analysis_window.row_off + target_window.row_off,
-                        width=target_window.width,
-                        height=target_window.height,
-                    )
-                    padded_window = Window(
-                        col_off=max(0, target_window.col_off - blur_halo),
-                        row_off=max(0, target_window.row_off - blur_halo),
-                        width=target_window.width + blur_halo * 2,
-                        height=target_window.height + blur_halo * 2,
-                    ).intersection(Window(0, 0, analysis_window.width, analysis_window.height))
-                    padded_pan_window = Window(
-                        col_off=analysis_window.col_off + padded_window.col_off,
-                        row_off=analysis_window.row_off + padded_window.row_off,
-                        width=padded_window.width,
-                        height=padded_window.height,
-                    )
-
-                    pan_raw = pan_ds.read(1, window=pan_window)
-                    pan_mask = pan_ds.read_masks(1, window=pan_window) > 0
-                    pan_raw_padded = pan_ds.read(1, window=padded_pan_window)
-                    pan_padded = pan_raw_padded.astype(np.float32) / pan_scale
-
-                    rgb_raw = ms_vrt.read([1, 2, 3], window=target_window)
-                    rgb_mask = np.all(ms_vrt.read_masks([1, 2, 3], window=target_window) > 0, axis=0)
-                    rgb_tile = np.clip(np.moveaxis(rgb_raw.astype(np.float32) / ms_scale, 0, -1), 0.0, 1.0)
-                    intensity = np.tensordot(rgb_tile, LUMINANCE_WEIGHTS, axes=([2], [0]))
-
-                    matched_pan = ((pan_padded - pan_mean) * (value_std / max(pan_std, EPSILON))) + value_mean
-                    low_pass_pan = gaussian_filter(matched_pan, sigma=blur_sigma, mode="reflect")
-                    pan_detail = matched_pan - low_pass_pan
-                    row_start = int(target_window.row_off - padded_window.row_off)
-                    col_start = int(target_window.col_off - padded_window.col_off)
-                    pan_detail = pan_detail[
-                        row_start : row_start + int(target_window.height),
-                        col_start : col_start + int(target_window.width),
-                    ]
-                    target_intensity = np.clip(intensity + (pan_detail * detail_strength), 0.0, 1.0)
-                    gain = np.divide(
-                        target_intensity,
-                        np.maximum(intensity, EPSILON),
-                        out=np.ones_like(target_intensity, dtype=np.float32),
-                        where=intensity > EPSILON,
-                    )
-                    gain = np.clip(gain, 0.6, 1.6)
-
-                    sharpened = np.clip(rgb_tile * gain[..., np.newaxis], 0.0, 1.0)
-                    sharpened = np.moveaxis(sharpened, -1, 0) * output_scale
-
-                    invalid = ~(pan_mask & rgb_mask)
-
-                    if np.any(invalid):
-                        sharpened[:, invalid] = 0
-
-                    if np.issubdtype(output_dtype, np.integer):
-                        info = np.iinfo(output_dtype)
-                        sharpened = np.clip(sharpened, max(info.min, 0), info.max)
-
-                    dst.write(sharpened.astype(output_dtype), window=target_window)
-
-                dst.colorinterp = (ColorInterp.red, ColorInterp.green, ColorInterp.blue)
-
-    return output
 
 
 def reproject_raster(
@@ -393,20 +109,37 @@ def reproject_raster(
     output_path: str,
     dst_crs: str,
     resampling: Resampling = Resampling.cubic,
+    dst_transform: Affine | None = None,
+    dst_width: int | None = None,
+    dst_height: int | None = None,
 ) -> Path:
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     with rio.open(input_path) as src:
-        transform, width, height = calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds
-        )
+        source_colorinterp = tuple(src.colorinterp[: src.count])
+        if dst_transform is None or dst_width is None or dst_height is None:
+            # Sem grade de saida predefinida, o Rasterio escolhe sozinho uma
+            # transformacao "boa o suficiente" para esta cena isolada.
+            transform, width, height = calculate_default_transform(
+                src.crs, dst_crs, src.width, src.height, *src.bounds
+            )
+        else:
+            # Quando a grade comum ja foi calculada externamente, usamos essa
+            # malha fixa para garantir que varias cenas sobrepostas caiam na
+            # mesma matriz de pixels apos a reprojecao.
+            transform = dst_transform
+            width = int(dst_width)
+            height = int(dst_height)
+
         profile = src.profile.copy()
         profile.update(crs=dst_crs, transform=transform, width=width, height=height)
         profile = _apply_tiff_layout(profile, width, height)
 
         with rio.open(output, "w", **profile) as dst:
             for band_index in range(1, src.count + 1):
+                # A reprojecao acontece banda a banda, preservando nodata,
+                # georreferenciamento e o metodo de interpolacao escolhido.
                 reproject(
                     source=rio.band(src, band_index),
                     destination=rio.band(dst, band_index),
@@ -418,35 +151,348 @@ def reproject_raster(
                     dst_nodata=src.nodata,
                     resampling=resampling,
                 )
+            _apply_colorinterp(dst, source_colorinterp)
 
     return output
+
+
+def compute_common_reprojection_grid(
+    raster_paths: Sequence[str],
+    dst_crs: str,
+) -> tuple[float, float, float, float]:
+    datasets = [rio.open(path) for path in raster_paths]
+    try:
+        if not datasets:
+            raise ValueError("Nenhum raster foi informado para calcular a grade comum.")
+
+        bounds_list: list[tuple[float, float, float, float]] = []
+        resolutions: list[tuple[float, float]] = []
+
+        for dataset in datasets:
+            bounds_list.append(transform_bounds(dataset.crs, dst_crs, *dataset.bounds, densify_pts=21))
+
+            if str(dataset.crs) == str(dst_crs):
+                resolutions.append((abs(dataset.res[0]), abs(dataset.res[1])))
+            else:
+                transform, _, _ = calculate_default_transform(
+                    dataset.crs, dst_crs, dataset.width, dataset.height, *dataset.bounds
+                )
+                resolutions.append((abs(transform.a), abs(transform.e)))
+
+        # A grade comum usa:
+        # - o envelope total do conjunto de rasters;
+        # - a menor resolucao de pixel encontrada;
+        # - limites arredondados para multiplos exatos dessa resolucao.
+        # Assim todas as cenas passam a "encaixar" na mesma malha espacial.
+        left = min(bounds[0] for bounds in bounds_list)
+        bottom = min(bounds[1] for bounds in bounds_list)
+        right = max(bounds[2] for bounds in bounds_list)
+        top = max(bounds[3] for bounds in bounds_list)
+
+        res_x = min(resolution[0] for resolution in resolutions)
+        res_y = min(resolution[1] for resolution in resolutions)
+
+        left = math.floor(left / res_x) * res_x
+        bottom = math.floor(bottom / res_y) * res_y
+        right = math.ceil(right / res_x) * res_x
+        top = math.ceil(top / res_y) * res_y
+
+        return left, top, res_x, res_y
+    finally:
+        for dataset in datasets:
+            dataset.close()
+
+
+def aligned_transform_for_bounds(
+    bounds: tuple[float, float, float, float],
+    origin_left: float,
+    origin_top: float,
+    res_x: float,
+    res_y: float,
+) -> tuple[Affine, int, int]:
+    left, bottom, right, top = bounds
+
+    # Este alinhamento nao expande o raster para o tamanho do mosaico inteiro.
+    # Ele so desloca os limites da cena para coincidirem com a grade comum.
+    aligned_left = origin_left + (math.floor((left - origin_left) / res_x) * res_x)
+    aligned_right = origin_left + (math.ceil((right - origin_left) / res_x) * res_x)
+    aligned_top = origin_top - (math.floor((origin_top - top) / res_y) * res_y)
+    aligned_bottom = origin_top - (math.ceil((origin_top - bottom) / res_y) * res_y)
+
+    width = max(1, int(round((aligned_right - aligned_left) / res_x)))
+    height = max(1, int(round((aligned_top - aligned_bottom) / res_y)))
+    transform = Affine(res_x, 0.0, aligned_left, 0.0, -res_y, aligned_top)
+
+    return transform, width, height
 
 
 def mosaic_rasters(
     raster_paths: Sequence[str],
     output_path: str,
     method: str = "first",
+    mem_limit_mb: int = 256,
 ) -> Path:
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
     datasets = [rio.open(path) for path in raster_paths]
     try:
-        mosaic, out_transform = merge(datasets, method=method)
-        profile = datasets[0].profile.copy()
-        profile.update(
-            driver="GTiff",
-            height=mosaic.shape[1],
-            width=mosaic.shape[2],
-            transform=out_transform,
-            count=mosaic.shape[0],
-        )
-        profile = _apply_tiff_layout(profile, mosaic.shape[2], mosaic.shape[1])
+        source_colorinterp = tuple(datasets[0].colorinterp[: datasets[0].count]) if datasets else ()
+        output_dtype = np.dtype(datasets[0].dtypes[0]) if datasets else np.float32
 
-        with rio.open(output, "w", **profile) as dst:
-            dst.write(mosaic)
+        if method == "average":
+            # Para RGB, "average" suaviza a transicao nas sobreposicoes:
+            # somamos os valores das cenas e dividimos pela quantidade de
+            # contribuicoes validas em cada pixel.
+            summed, out_transform = merge(datasets, method=copy_sum, mem_limit=mem_limit_mb)
+            counts, _ = merge(datasets, method=copy_count, mem_limit=mem_limit_mb)
+            mosaic = np.divide(
+                summed,
+                np.maximum(counts, 1),
+                out=np.zeros_like(summed, dtype=np.float32),
+                where=counts > 0,
+            )
+            if np.issubdtype(output_dtype, np.integer):
+                info = np.iinfo(output_dtype)
+                mosaic = np.clip(np.rint(mosaic), max(info.min, 0), info.max).astype(output_dtype)
+
+            profile = datasets[0].profile.copy()
+            profile.update(
+                driver="GTiff",
+                height=mosaic.shape[1],
+                width=mosaic.shape[2],
+                transform=out_transform,
+                count=mosaic.shape[0],
+                dtype=np.dtype(mosaic.dtype).name,
+            )
+            profile = _apply_tiff_layout(profile, mosaic.shape[2], mosaic.shape[1])
+
+            with rio.open(output, "w", **profile) as dst:
+                dst.write(mosaic)
+                _apply_colorinterp(dst, source_colorinterp)
+        else:
+            # "first" e o comportamento mais conservador e, para produtos
+            # grandes como o pansharpening em 2 m, pode ser escrito direto
+            # no disco para evitar manter o mosaico inteiro em memoria.
+            dst_kwds = datasets[0].profile.copy()
+            dst_kwds.update(
+                driver="GTiff",
+                count=datasets[0].count,
+                dtype=output_dtype.name,
+                compress="deflate",
+                BIGTIFF="IF_SAFER",
+                tiled=True,
+                blockxsize=512,
+                blockysize=512,
+            )
+            merge(
+                datasets,
+                method=method,
+                mem_limit=mem_limit_mb,
+                dst_path=str(output),
+                dst_kwds=dst_kwds,
+            )
+            with rio.open(output, "r+") as dst:
+                _apply_colorinterp(dst, source_colorinterp)
     finally:
         for dataset in datasets:
             dataset.close()
 
     return output
+
+
+def render_rgb_visual(
+    input_path: str,
+    output_path: str,
+    low_percentile: float = 2.0,
+    high_percentile: float = 98.0,
+    gamma: float = 1.15,
+    tile_size: int = 2048,
+    sample_size: int = 2048,
+) -> Path:
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    with rio.open(input_path) as src:
+        if src.count < 3:
+            raise ValueError("O raster precisa ter pelo menos 3 bandas para gerar visual RGB.")
+
+        sample_height = min(sample_size, src.height)
+        sample_width = min(sample_size, src.width)
+        sample = src.read(
+            [1, 2, 3],
+            out_shape=(3, sample_height, sample_width),
+            masked=True,
+        ).astype(np.float32)
+
+        valid_sample = np.all(~sample.mask, axis=0)
+        if not np.any(valid_sample):
+            raise ValueError("Nao foi possivel amostrar pixels validos para gerar o visual RGB.")
+
+        channel_limits: list[tuple[float, float]] = []
+        for band_index in range(3):
+            values = sample[band_index].data[valid_sample]
+            low = float(np.percentile(values, low_percentile))
+            high = float(np.percentile(values, high_percentile))
+            if not np.isfinite(low) or not np.isfinite(high) or high <= low:
+                high = low + 1.0
+            channel_limits.append((low, high))
+
+        profile = src.profile.copy()
+        profile.update(
+            driver="GTiff",
+            count=3,
+            dtype="uint8",
+            nodata=0,
+        )
+        profile = _apply_tiff_layout(profile, src.width, src.height)
+
+        full_window = Window(0, 0, src.width, src.height)
+
+        with rio.open(output, "w", **profile) as dst:
+            for window in _iter_windows(full_window, tile_size):
+                rgb = src.read([1, 2, 3], window=window, masked=True).astype(np.float32)
+                valid = np.all(~rgb.mask, axis=0)
+                rendered = np.zeros((3, int(window.height), int(window.width)), dtype=np.uint8)
+
+                for band_index, (low, high) in enumerate(channel_limits):
+                    stretched = np.clip((rgb[band_index].data - low) / (high - low), 0.0, 1.0)
+                    stretched = np.power(stretched, 1.0 / max(gamma, EPSILON))
+                    rendered[band_index] = np.round(stretched * 255.0).astype(np.uint8)
+
+                if np.any(~valid):
+                    rendered[:, ~valid] = 0
+
+                dst.write(rendered, window=window)
+
+            _apply_colorinterp(dst)
+
+    return output
+
+
+def _sample_rgb_percentile_limits(
+    dataset: rio.io.DatasetReader,
+    low_percentile: float,
+    high_percentile: float,
+    sample_size: int,
+) -> np.ndarray:
+    sample_height = min(sample_size, dataset.height)
+    sample_width = min(sample_size, dataset.width)
+    sample = dataset.read(
+        [1, 2, 3],
+        out_shape=(3, sample_height, sample_width),
+        masked=True,
+    ).astype(np.float32)
+
+    valid = np.all(~sample.mask, axis=0)
+    if not np.any(valid):
+        raise ValueError("Nao foi possivel amostrar pixels validos para equalizar o RGB.")
+
+    rgb_data = sample.data
+    luma = (
+        0.299 * rgb_data[0]
+        + 0.587 * rgb_data[1]
+        + 0.114 * rgb_data[2]
+    )
+    max_band = np.max(rgb_data[:3], axis=0)
+    min_band = np.min(rgb_data[:3], axis=0)
+    saturation = (max_band - min_band) / np.maximum(max_band, EPSILON)
+    blue_ratio = rgb_data[2] / np.maximum(np.sum(rgb_data[:3], axis=0), EPSILON)
+
+    luma_values = luma[valid]
+    dark_limit = float(np.percentile(luma_values, 1))
+    bright_limit = float(np.percentile(luma_values, 92))
+    stable = (
+        valid
+        & (luma >= dark_limit)
+        & (luma <= bright_limit)
+        & (saturation <= 0.88)
+        & (blue_ratio <= 0.55)
+    )
+    if int(np.count_nonzero(stable)) >= 1000:
+        valid = stable
+
+    limits: list[tuple[float, float]] = []
+    for band_index in range(3):
+        values = sample[band_index].data[valid]
+        low = float(np.percentile(values, low_percentile))
+        high = float(np.percentile(values, high_percentile))
+        if not np.isfinite(low) or not np.isfinite(high) or high <= low:
+            high = low + 1.0
+        limits.append((low, high))
+
+    return np.asarray(limits, dtype=np.float32)
+
+
+def harmonize_rgb_rasters(
+    raster_paths: Sequence[str],
+    output_dir: str,
+    low_percentile: float = 2.0,
+    high_percentile: float = 98.0,
+    sample_size: int = 2048,
+    tile_size: int = 2048,
+) -> list[Path]:
+    output_root = Path(output_dir)
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    source_paths = [Path(path) for path in raster_paths]
+    if not source_paths:
+        return []
+
+    source_limits: list[np.ndarray] = []
+    for source_path in source_paths:
+        with rio.open(source_path) as src:
+            if src.count < 3:
+                raise ValueError(f"O raster {source_path} precisa ter pelo menos 3 bandas RGB.")
+            source_limits.append(
+                _sample_rgb_percentile_limits(
+                    src,
+                    low_percentile=low_percentile,
+                    high_percentile=high_percentile,
+                    sample_size=sample_size,
+                )
+            )
+
+    target_limits = np.median(np.stack(source_limits, axis=0), axis=0)
+    outputs: list[Path] = []
+
+    for source_path, limits in zip(source_paths, source_limits):
+        output_path = output_root / source_path.name
+        outputs.append(output_path)
+
+        with rio.open(source_path) as src:
+            profile = src.profile.copy()
+            profile.update(driver="GTiff", nodata=src.nodata if src.nodata is not None else 0)
+            profile = _apply_tiff_layout(profile, src.width, src.height)
+
+            output_dtype = np.dtype(src.dtypes[0])
+            full_window = Window(0, 0, src.width, src.height)
+
+            with rio.open(output_path, "w", **profile) as dst:
+                for window in _iter_windows(full_window, tile_size):
+                    rgb = src.read([1, 2, 3], window=window, masked=True).astype(np.float32)
+                    valid = np.all(~rgb.mask, axis=0)
+                    balanced = np.zeros((3, int(window.height), int(window.width)), dtype=np.float32)
+
+                    for band_index in range(3):
+                        src_low, src_high = limits[band_index]
+                        tgt_low, tgt_high = target_limits[band_index]
+                        normalized = np.clip(
+                            (rgb[band_index].data - src_low) / max(src_high - src_low, EPSILON),
+                            0.0,
+                            1.0,
+                        )
+                        balanced[band_index] = (normalized * (tgt_high - tgt_low)) + tgt_low
+
+                    if np.any(~valid):
+                        balanced[:, ~valid] = 0
+
+                    if np.issubdtype(output_dtype, np.integer):
+                        info = np.iinfo(output_dtype)
+                        balanced = np.clip(balanced, max(info.min, 0), info.max)
+
+                    dst.write(balanced.astype(output_dtype), window=window)
+
+                _apply_colorinterp(dst, tuple(src.colorinterp[: src.count]))
+
+    return outputs

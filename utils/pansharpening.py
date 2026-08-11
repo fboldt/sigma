@@ -1,9 +1,6 @@
 import os
-
 import rasterio as rio
-
-from .georaster import pansharpen_hsv_tiled
-
+from .pansharpening_core import pansharpen_hsv_tiled
 
 def generate_pansharpened_image(
     multispectral,
@@ -18,7 +15,6 @@ def generate_pansharpened_image(
         output_path = output_filename
     else:
         output_path = os.path.join(output_dir, output_filename)
-
     pansharpen_hsv_tiled(
         multispectral_path=multispectral,
         panchromatic_path=panchromatic,
@@ -27,5 +23,4 @@ def generate_pansharpened_image(
         sample_stride=sample_stride,
         crop_to_intersection=crop_to_intersection,
     )
-
     return rio.open(output_path)

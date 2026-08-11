@@ -1,4 +1,4 @@
-from .georaster import pansharpen_hsv_tiled
+from .pansharpening_core import pansharpen_hsv_tiled
 
 
 def processar_pansharpening_tiles(
