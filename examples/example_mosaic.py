@@ -25,7 +25,7 @@ def example_mosaic():
     ]
 
 
-    output_file_path = "./images/MOSAICO_ES_INTEIRO_NOVO.tif"
+    output_file_path = "./images/MOSAICO_ES.tif"
     mosaic_scenes(cenas, output_file_path, reference_index=0)
 
 if __name__ == "__main__":
