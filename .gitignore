@@ -1,3 +1,6 @@
 *.pyc
 *.venv
+venv/
+*.tif
+*.tif.aux.xml
 __pycache__/
