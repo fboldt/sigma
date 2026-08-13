@@ -100,20 +100,6 @@ nav a {
   gap: 40px;
 }
 
-.tutoriais h1 {
-  font-size: 54px;
-}
-
-.tutoriais h2 {
-  margin-top: 15px;
-  font-size: 28px;
-}
-
-.tutoriais p {
-  margin-top: 10px;
-  font-size: 17px;
-}
-
 .tutoriais-btn {
   background: #6b8f7e;
   color: white;

@@ -4,7 +4,7 @@ from example_download_es import example_download_es
 def example_download_and_rgb_es():
 
     # Download de bandas
-    bands_path = example_download_es(bands=['red', 'green', 'blue', 'pan'])
+    bands_path = example_download_es(bands=['red', 'green', 'blue', 'nir'])
 
     # Composição RGB
     # Nome completo do arquivo de saída
