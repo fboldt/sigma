@@ -6,36 +6,41 @@ from utils.mosaic import mosaic_scenes
 from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
+import os
 
 def workflow_mosaic():
 
     # 1. Parâmetros de busca
+    # Download das bandas
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabelly.cristine.ic@gmail.com'
-        
-    # Polígono do local de busca
-    # Localização: Espírito Santo (ES)
-    url = "https://servicodados.ibge.gov.br/api/v4/malhas/estados/32?formato=application/vnd.geo+json&qualidade=minima" # URL do Query Builder na API do IBGE
-    response = requests.get(url) 
-    data = response.json() 
-    polygon = shape(data['features'][0]['geometry'])
-    
+    user = 'izabellyglassiner@gmail.com'
+
+    # Coordenadas do local de busca
+    # Localização: Domingos Martins - ES, Brasil
+    x_min = -42.080195454621    # Oeste
+    y_min = -20.98380835559   # Sul
+    x_max = -39.262195454621     # Leste
+    y_max = -18.16580835559    # Norte
+
+    # Bounding Box a partir das coordenadas informadas
+    bbox = [x_min, y_min, x_max, y_max]
+
     # Especificações dos produtos a retornar
-    max_cloud = 0            # Cobertura de nuvens (max)
-    max_products =  5       # Número de cenas por Dataset (max)
+    max_cloud = 0         # Cobertuda de nuvens (max)
+    max_products = 5        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
-    initial_date = date(2024, 1, 1)      # ano, mês, dia
-    final_date = date(2025, 12, 31)      # ano, mês, dia
+    initial_date = date(2023, 1, 1)     # ano, mês, dia
+    final_date = date(2026, 4, 26)      # ano, mês, dia
 
     # Informações referentes ao download das bandas
-    bands = ['red', 'green', 'blue']    # Bandas para download
+    bands = ['red', 'green', 'blue', 'pan']    # Bandas para download
     output_dir = './images'             # Diretório onde os arquivos serão salvos
 
     # Dicionário com as informações de busca
     params = {
         'user': user,
-        'bbox': Polygon(polygon),
+        'bbox': bbox,
         'max_cloud': max_cloud,
         'max_products': max_products,
         'initial_date': initial_date,
@@ -65,7 +70,7 @@ def workflow_mosaic():
     print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")
 
     # 6. Formação do mosaico
-    output_file_path='./images/MOSAICO_EXEMPLO'
+    output_file_path='./images/MOSAICO_EXEMPLO_WORKFLOW'
     print(f'Iniciando formação do mosaico.')
     mosaic_scenes(files, output_file_path)
     print(f'Processo concluído! Mosaico salvo em: {output_file_path}')
