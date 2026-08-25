@@ -2,7 +2,7 @@
 
 Uma abordagem baseada em fusão de imagens e correspondência com imagens de satélite
 
-🌐 **[Acesse a documentação completa do projeto](https://fboldt.github.io/sigma)**
+🌐 **[Acesse a documentação completa do projeto](https://izaglassiner.github.io/sigma-site/)**
 
 ## Descrição
 
