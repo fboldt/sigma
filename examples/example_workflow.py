@@ -13,29 +13,29 @@ def workflow_mosaic():
     # 1. Parâmetros de busca
     # Download das bandas
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabellyglassiner@gmail.com'
+    user = 'email@email.com' # E-mail cadastrado na plataforma do INPE
 
     # Coordenadas do local de busca
-    # Localização: Domingos Martins - ES, Brasil
-    x_min = -42.080195454621    # Oeste
-    y_min = -20.98380835559   # Sul
-    x_max = -39.262195454621     # Leste
-    y_max = -18.16580835559    # Norte
+    # Localização: Rio de Janeiro (RJ)
+    x_min = -43.4419159     # Oeste
+    y_min = -23.1644475     # Sul
+    x_max = -42.9159159     # Leste
+    y_max = -22.6384475     # Norte
 
     # Bounding Box a partir das coordenadas informadas
     bbox = [x_min, y_min, x_max, y_max]
 
     # Especificações dos produtos a retornar
-    max_cloud = 0         # Cobertuda de nuvens (max)
-    max_products = 5        # Número de cenas por Dataset (max)
+    max_cloud = 0            # Cobertuda de nuvens (max)
+    max_products = 10        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
-    initial_date = date(2023, 1, 1)     # ano, mês, dia
-    final_date = date(2026, 4, 26)      # ano, mês, dia
+    initial_date = date(2024, 1, 1)     # ano, mês, dia
+    final_date = date(2026, 9, 1)       # ano, mês, dia
 
     # Informações referentes ao download das bandas
-    bands = ['red', 'green', 'blue', 'pan']    # Bandas para download
-    output_dir = './images'             # Diretório onde os arquivos serão salvos
+    bands = ['red', 'green', 'blue', 'pan']     # Bandas para download
+    output_dir = './images'                     # Diretório onde os arquivos serão salvos
 
     # Dicionário com as informações de busca
     params = {
