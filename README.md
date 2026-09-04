@@ -1,67 +1,65 @@
-# SIGMA - Sistema Integrado de Geração de Mosaicos Aeroespaciais
+# Sigma - Sistema Integrado de Geração de Mosaicos Aeroespaciais
 
 Uma abordagem baseada em fusão de imagens e correspondência com imagens de satélite
 
-🌐 **[Acesse a documentação completa do projeto](https://izaglassiner.github.io/sigma-site/)**
+🌐 **[Acesse a documentação completa do projeto](https://fboldt.github.io/sigma/)**
 
 ## Descrição
 
-Este repositório reúne o pipeline, os algoritmos e os experimentos para a geração de um ortomosaico contínuo e georreferenciado do estado do Espírito Santo, utilizando exclusivamente imagens de satélite.
-O projeto explora técnicas modernas de image stitching (costura de imagens), com foco em reduzir a dependência de Ground Control Points (GCPs). O objetivo é produzir um mosaico adequado para aplicações ambientais, fundiárias, cartográficas e acadêmicas.
+O SIGMA é um pipeline em Python que automatiza a geração de um ortomosaico contínuo e georreferenciado do estado do Espírito Santo a partir de imagens do satélite CBERS-4A. O projeto reúne todas as etapas do processo — busca e download das cenas no catálogo do INPE, pansharpening, correção radiométrica e mosaicagem — sem intervenção manual, entregando um mosaico final recortado pelos limites do estado.
 
+O trabalho está vinculado ao **IntegraCAR**, o maior projeto de extensão do Ifes, desenvolvido em parceria com a Fapes (Fundação de Amparo à Pesquisa do Espírito Santo) e o IDAF (Instituto de Defesa Agropecuária e Florestal), com o objetivo de integrar e automatizar o Cadastro Ambiental Rural (CAR) no estado.
 
-### Motivação
+## Pré-requisitos
 
-A consolidação de um ortomosaico estadual de alta qualidade é essencial para:
-  - apoiar estudos territoriais e ambientais;
-  - uniformizar análises cartográficas em nível estadual;
-  - reduzir dependência de bases comerciais e de alto custo;
-  - facilitar visualização e interpretação de áreas rurais e urbanas;
-  - permitir comparações temporais para monitoramento ambiental.
+Antes de começar, você vai precisar ter instalado:
 
-No entanto, imagens orbitais podem variar entre si em resolução, iluminação, geometria e data de captura.
-Este projeto busca superar esses desafios por meio de técnicas modernas de fusão, alinhamento e costura de imagens, garantindo que o mosaico final seja uniforme e geometricamente confiável.
+- [Git](https://git-scm.com/)
+- [Python 3.10+](https://www.python.org/downloads/)
 
+## Instalação e execução local
 
-### Objetivos
+**1. Clone o repositório**
+```bash
+git clone https://github.com/fboldt/sigma.git
+cd sigma
+```
 
-#### Objetivo Geral
-Construir um ortomosaico do Espírito Santo reunindo cenas de satélite, registradas e fundidas com métodos robustos de visão computacional.
+**2. Crie e ative um ambiente virtual**
 
-#### Objetivos Específicos
-- Implementar os três algoritmos de fusão de imagens:
+Linux / macOS:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-    - Weighted Average (WA)
-    - Maxflow/Mincut
-    - Laplacian Pyramid (LAP)
+Windows:
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-- Aplicar os algoritmos às imagens do satélite CBERS-4A após pré-processamento adequado.
-- Gerar imagens compostas (mosaicos) a partir da fusão das cenas.
-- Avaliar as imagens resultantes utilizando as seguintes métricas:
-    - PSNR (Peak Signal-to-Noise Ratio)
-    - SSIM (Structural Similarity Index)
-    - MI (Mutual Information)
-    - Coeficiente de Correlação (CC)
-    - Tempo de execução dos algoritmos
+**3. Instale as dependências**
+```bash
+pip install -r requirements.txt
+```
 
-- Comparar o desempenho dos métodos a partir da análise dos resultados quantitativos e qualitativos obtidos.
+**4. Execute o projeto**
+```bash
+python run_example.py
+```
 
+Você também pode rodar qualquer um dos scripts prontos dentro da pasta `examples/` da mesma forma, bastando ajustar os parâmetros desejados antes de executar:
+```bash
+python examples/nome_do_exemplo.py
+```
 
-## Fluxo de trabalho
+## Estrutura do repositório
 
-  #### 1. Coleta de imagens
-  Download e organização das cenas orbitais selecionadas.
-  
-  #### 2. Análise das imagens
-  Identificação de área de cobertura, nuvens, qualidade e resolução.
-  
-  #### 3. Ortorretificação
-  Correções geométricas e radiométricas iniciais.
-  
-  #### 4. Posicionamento das imagens
-  Registro geométrico e alinhamento entre cenas.
-
-  #### 5. Mosaico e fusão
-  Aplicação dos algoritmos de costura e geração do ortomosaico final.
-Aplicação dos algoritmos de costura e geração do ortomosaico final.
-
+| Pasta / arquivo | Descrição |
+|---|---|
+| `utils/` | Funções e módulos reutilizáveis do projeto. |
+| `examples/` | Exemplos prontos para uso: scripts já configurados, onde basta alterar os parâmetros e executar. |
+| `tutorials/` | Tutoriais em passo a passo explicando como executar os códigos do projeto do início ao fim. |
+| `workflow-sigma.ipynb` | Notebook demonstrando o fluxo de trabalho completo do projeto. |
+| `requirements.txt` | Lista de dependências Python do projeto. |

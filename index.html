@@ -1,157 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIGMA</title>
-
-    <link rel="stylesheet" href="styles.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sigma</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- NAV -->
+<!-- NAVBAR -->
 <header class="navbar">
-    <div class="nav-container">
-        <div class="nav-logo">SIGMA</div>
-
-        <nav>
-            <a href="#ortofoto">Ortomosaicos</a>
-            <a href="#stitch">Image Stitching</a>
-            <a href="#equipe">Equipe</a>
-            <a href="#tutoriais">Tutoriais</a>
-        </nav>
-    </div>
+  <nav class="navbar__inner">
+    <a href="#sobre">Sobre</a>
+    <a href="#pesquisa">Pesquisa</a>
+    <a href="#repositorio">Repositório</a>
+    <a href="#equipe">Equipe</a>
+  </nav>
 </header>
 
-<!-- HERO -->
+<!-- HERO / LOGO -->
 <section class="hero">
-    <img src="images/logo.jpeg" class="hero-logo">
+  <div class="hero__inner">
+    <img src="images/logo-sigma.png" alt="SIGMA" class="hero__logo">
+  </div>
 </section>
 
-<!-- ORTOMOSAICOS -->
-<section id="ortofoto" class="section ortofoto">
-    <div class="ortofoto-text">
-        <h1>Ortomosaicos</h1>
+<!-- FAIXA DE IMAGEM DE SATÉLITE -->
+<div class="section-divider"></div>
 
-        <h2>O que é um ortomosaico?</h2>
-        <p>
-            Ortofotomosaicos são resultantes da montagem de imagens aerofotogramétricas
-            ortorretificadas. São úteis para identificação e mapeamento de feições geográficas.
-        </p>
+<!-- SOBRE -->
+<section id="sobre" class="section">
+  <div class="section__inner">
+    <h2>Sobre</h2>
+    <p>O grupo Sigma (Sistema Integrado de Geração de Mosaicos Aeroespaciais) desenvolve um software para automatizar a geração de ortomosaicos do Espírito Santo a partir de imagens do satélite CBERS-4A, por meio de um script em Python. O trabalho está vinculado ao IntegraCAR, o maior projeto de extensão do Ifes, realizado em parceria com a Fapes (Fundação de Amparo à Pesquisa do Espírito Santo) e o IDAF (Instituto de Defesa Agropecuária e Florestal), com o objetivo de integrar e automatizar o Cadastro Ambiental Rural (CAR) no estado.</p>
 
-        <h2>Grupo SIGMA</h2>
-        <p>
-            O grupo SIGMA tem como objetivo o desenvolvimento de soluções para automatizar
-            a geração de ortomosaicos.
-        </p>
+    <h3>O que são ortomosaicos?</h3>
+    <p>Um ortomosaico é uma imagem formada pela união de várias cenas de satélite em um único mapa contínuo, corrigido geometricamente para eliminar distorções de relevo e ângulo de captura. O resultado é uma representação fiel e georreferenciada do território, usada em análises ambientais, mapeamento do uso do solo e fiscalização de áreas rurais em larga escala.</p>
+  </div>
+</section>
+
+<!-- FAIXA DE IMAGEM DE SATÉLITE -->
+<div class="section-divider"></div>
+
+<!-- PESQUISA -->
+<section id="pesquisa" class="section">
+  <div class="section__inner">
+    <div class="research-intro">
+      <div class="research-intro__text">
+        <h2>Pesquisa desenvolvida</h2>
+        <p>O grupo segue atualmente três linhas de pesquisa: a automatização do fluxo de geração de ortomosaicos de baixa resolução, a aplicação de técnicas de pansharpening para aumento da resolução espacial das imagens e o desenvolvimento de métodos de detecção de nuvens em imagens de satélite.</p>
+      </div>
     </div>
-</section>
 
-<!-- IMAGEM FULLWIDTH (CORRIGIDA) -->
-<section class="fullwidth-section">
-    <img src="images/ortofoto.png" class="fullwidth-img">
-</section>
+    <h3>Linhas de Pesquisa</h3>
 
-<!-- IMAGE STITCHING -->
-<section id="stitch" class="section stitch">
-    <div class="stitch-grid">
-
-        <div class="stitch-text">
-            <h1>Image Stitching</h1>
-
-            <h2>O que é o Image Stitching?</h2>
-            <p>
-                Image stitching é a técnica de unir diversas imagens com áreas de sobreposição
-                para formar uma única imagem contínua.
-            </p>
-
-            <h2>Fluxo de processamento</h2>
-            <ol>
-                <li>Coleta de imagens</li>
-                <li>Análise das imagens</li>
-                <li>Ortoretificação</li>
-                <li>Posicionamento das imagens</li>
-                <li>Mosaico e fusão</li>
-            </ol>
+    <article class="paper">
+      <h4>Convolução Não-Local Adaptativa ao Conteúdo para Pansharpening de Imagens</h4>
+      <div class="paper-content">
+        <p>Uma das linhas de pesquisa do IntegraCAR investiga técnicas avançadas de fusão de imagens orbitais para ampliar a resolução espacial dos produtos multiespectrais utilizados no monitoramento territorial do Espírito Santo. A partir de imagens do satélite CBERS-4A, o projeto explora redes neurais capazes de identificar regiões semanticamente coerentes — como remanescentes de Mata Atlântica, áreas urbanas, litoral e zonas agrícolas — e de adaptar dinamicamente o processo de fusão a cada tipo de cobertura do solo. Essa abordagem permite gerar imagens de alta resolução espacial mais fiéis espectralmente, com potencial de aprimorar a precisão das análises que sustentam o Cadastro Ambiental Rural, favorecendo diagnósticos mais precisos sobre uso e ocupação do solo em todo o estado.</p>
+        <div class="paper-content__image">
+          <img src="images/tomir.png" alt="Convolução Não-Local Adaptativa ao Conteúdo para Pansharpening">
         </div>
+      </div>
 
-        <img src="images/imagestitching.png" class="stitch-img">
+      <h4 class="related-work-title">Trabalho relacionado</h4>
+      <h5>Convolução Não-Local Adaptativa ao Conteúdo para Pansharpening de Imagens CBERS-4A: Aplicação e Evolução Metodológica para o Projeto IntegraCAR</h5>
+      <p class="paper-summary">Resumo: Este trabalho propõe a aplicação e evolução do método CANConv (Content-Adaptive Non-Local Convolution) para a tarefa de pansharpening de imagens do satélite CBERS-4A, com foco na região do Espírito Santo. O CANConv emprega agrupamento para capturar a autosimilaridade não-local em imagens de sensoriamento remoto, gerando kernels de convolução adaptativos por meio de partição semântica. Propõem-se três contribuições metodológicas: particionamento diferenciável via Gumbel-Softmax (Soft-SRP), atenção cruzada PAN↔MS na geração de kernels e função de perda customizada para as características espectrais do WPM. A diversidade da cobertura do solo no Espírito Santo — mata atlântica, zonas urbanas, litoral e agricultura — oferece contexto geográfico rico para validar a coerência semântica dos clusters.</p>
+      <div class="paper-actions" style="display:flex; flex-direction:column; align-items:flex-start;">
+        
+      <p class="note">SCHMITE JUNIOR, T. D. Convolução Não-Adaptativa ao Conteúdo para Pansharpening de Imagens CBR-4A: Aplicação e Evolução Metodológica para o Projeto IntegraCAR. Trabalho apresentado em: SIMPÓSIO INTEGRACAR, 1., 2026, Vitória.</p>
+
+      <div class="paper-actions__buttons" style="display:flex; flex-wrap:wrap; gap:12px;">
+        <a href="resumos/CONVOLUÇÃO NÃO-LOCAL ADAPTATIVA AO CONTEÚDO PARA PANSHARPENING DE IMAGENS CBERS-4A APLICAÇÃO E EVOLUÇÃO METODOLÓGICA PARA O PROJETO INTEGRACAR.pdf" class="btn btn--green" download>
+          Download (PDF)
+        </a>
+      </div>
+
     </div>
+
+      <hr>
+    
+    </article>
+
+    <article class="paper">
+      <h4>Fluxo de Pansharpening</h4>
+      <div class="paper-content">
+        <p>Outra frente de pesquisa do IntegraCAR concentra-se na construção de um pipeline confiável para geração de ortomosaicos geográficos do Espírito Santo a partir de imagens do satélite CBERS-4A, unindo composições coloridas fiéis e fusão de bandas pancromática e multiespectral. O trabalho parte da constatação de que problemas comuns em produtos de sensoriamento remoto — cores artificiais, falhas de leitura e desalinhamento entre cenas — frequentemente têm origem em etapas anteriores da cadeia de processamento, como a seleção e o pareamento correto das bandas de origem. A partir desse diagnóstico, o fluxo foi reestruturado para auditar metadados, preservar a fidelidade espectral das imagens durante a fusão e garantir maior consistência radiométrica entre cenas vizinhas, resultando em produtos mais estáveis e precisos para a composição do mosaico estadual. Essa etapa é essencial para assegurar que as análises territoriais realizadas no âmbito do Cadastro Ambiental Rural se apoiem em uma base cartográfica contínua e confiável.</p>
+        <div class="paper-content__image">
+          <img src="images/gabriele.png" alt="Fluxo de Pansharpening e Ortomosaico Geográfico">
+        </div>
+      </div>
+
+      <h4 class="related-work-title">Trabalho relacionado</h4>
+      <h5>Diagnóstico e Aprimoramento de um Fluxo de Pansharpening e Ortomosaico geográfico com Imagens CBERS-4A/WPM para o Espírito Santo</h5>
+      <p class="paper-summary">Resumo: Este trabalho apresenta o diagnóstico e o aprimoramento de um fluxo para geração de composições RGB, pansharpening e mosaico geográfico do Espírito Santo com imagens CBERS-4A/WPM. A investigação partiu de falhas como cores artificialmente azuladas ou avermelhadas, pixels aparentemente ausentes, erro de leitura TIFF e incompatibilidade entre cenas multiespectrais e pancromáticas. Verificou-se que a criação do ortomosaico depende de uma cadeia consistente: seleção de cenas com RGB e PAN, alinhamento, pansharpening por cena e composição final. O fluxo foi reorganizado para auditar a banda pancromática, gerar RGBs corretos, reduzir distorções espectrais e preparar produtos mais estáveis para o mosaico.</p>
+      <div class="paper-actions" style="display:flex; flex-direction:column; align-items:flex-start;">
+        <p class="note">LUCIANO, G. M. M. et al. Diagnóstico e Aprimoramento de um Fluxo de Pansharpening e Ortomosaico Geográfico com Imagns CBERS-4A/WPM para o Espírito Santo. Trabalho apresentado em: SIMPÓSIO INTEGRACAR, 1., 2026, Vitória.</p>
+
+        <div class="paper-actions__buttons" style="display:flex; flex-wrap:wrap; gap:12px;">
+          <a href="resumos/DIAGNÓSTICO E APRIMORAMENTO DE UM FLUXO DE PANSHARPENING E ORTOMOSAICO GEOGRÁFICO COM IMAGENS CBERS-4AWPM PARA O ESPÍRITO SANTO.pdf" class="btn btn--green" download>
+            Download (PDF)
+          </a>
+          <a href="https://github.com/fboldt/sigma/blob/main/examples/example_pansharpening_tiles.py"
+          class="btn btn--green"
+          target="_blank"
+          rel="noopener noreferrer">
+          Código
+          </a>
+        </div>
+      </div>
+
+    </article>
+
+    <hr>
+
+    <article class="paper">
+      <h4>Geração de Ortomosaicos</h4>
+      <div class="paper-content">
+        <p>Outra frente de pesquisa do IntegraCAR dedica-se à automação completa do processo de geração de ortomosaicos estaduais a partir de imagens de satélite, transformando um fluxo tradicionalmente manual e trabalhoso em um pipeline Python capaz de operar do início ao fim sem intervenção humana. A solução integra as etapas de busca e download de cenas do catálogo do INPE, composição colorida, correção geométrica e radiométrica das imagens, e costura incremental dos recortes em uma superfície contínua, resolvendo desafios técnicos como o desalinhamento entre bandas espectrais e as diferenças de iluminação e cor entre cenas captadas em datas distintas. O resultado é um mosaico atualizado e recortado automaticamente para os limites do Espírito Santo, oferecendo uma base cartográfica confiável e escalável para subsidiar as análises territoriais do Cadastro Ambiental Rural em todo o estado.</p>
+        <div class="paper-content__image">
+          <img src="images/izabelly.png" alt="Geração de Ortomosaicos a partir de Imagens do Satélite CBERS-4A">
+        </div>
+      </div>
+
+      <h4 class="related-work-title">Trabalho relacionado</h4>
+      <h5>Geração de Ortomosaicos a partir de Imagens do Satélite CBERS-4A via Script Python</h5>
+      <p class="paper-summary">Resumo: O presente trabalho propõe a automação do processo de geração de ortomosaicos a partir de imagens do satélite CBERS-4A por meio de um script Python. O desenvolvimento se deu a partir do uso da biblioteca cbers4asat, encapsulando e estendendo suas funções de busca, download e composição RGB, além do desenvolvimento de função própria para a formação do mosaico. Os principais desafios enfrentados foram o desalinhamento das bandas espectrais, a presença de pixels sem dados e a heterogeneidade radiométrica entre cenas captadas em épocas e horários distintos. A solução adotou um método de mosaico incremental com ajuste por percentis via correspondência entre cenas.</p>
+      <div class="paper-actions" style="display:flex; flex-direction:column; align-items:flex-start;">
+        <p class="note">COUTINHO, I. C. G. et al. Geração de Ortomosaicos a partir de Imagens do Satélite CBERS-4A via Script Python. Trabalho apresentado em: SIMPÓSIO INTEGRACAR, 1., 2026, Vitória.</p>
+
+        <div class="paper-actions__buttons" style="display:flex; flex-wrap:wrap; gap:12px;">
+          <a href="resumos/GERAÇÃO DE ORTOMOSAICOS A PARTIR DE IMAGENS DO SATÉLITE CBERS-4A VIA SCRIPT PYTHON.pdf" class="btn btn--green" download>
+            Download (PDF)
+          </a>
+          <a href="https://github.com/fboldt/sigma/blob/main/examples/example_workflow.py"
+          class="btn btn--green"
+          target="_blank"
+          rel="noopener noreferrer">
+          Código
+          </a>
+        </div>
+      </div>
+
+      
+
+    </article>
+
+    <hr>
+
+    <article class="paper">
+      <h4>Identificação de Nuvens</h4>
+      <div class="paper-content">
+        <p>Uma linha de pesquisa complementar do IntegraCAR investiga a identificação automática de nuvens em imagens de satélite, etapa essencial para garantir a qualidade dos ortomosaicos utilizados na automatização do Cadastro Ambiental Rural no Espírito Santo. Diante da ausência de bandas espectrais que normalmente facilitam essa distinção, o projeto explora índices adaptados capazes de diferenciar nuvens de superfícies claras, como telhados de edificações, que costumam gerar falsos positivos em abordagens mais simples baseadas apenas em cor. O processamento é acelerado por GPU, permitindo analisar grandes volumes de imagens em tempo reduzido sem comprometer a precisão da segmentação. Essa etapa de filtragem contribui diretamente para a confiabilidade dos mosaicos estaduais, assegurando que áreas encobertas por nuvens não comprometam as análises territoriais que sustentam a regularização ambiental no estado.</p>
+        <div class="paper-content__image">
+          <img src="images/julia.png" alt="Identificação de Nuvens em Imagens de Satélite para Geração de Ortomosaico">
+        </div>
+      </div>
+
+      <h4 class="related-work-title">Trabalho relacionado</h4>
+      <h5>Identificação de Nuvens em Imagens de Satélite para Geração de Ortomosaico</h5>
+      <p class="paper-summary">Resumo: Este trabalho apresenta o desenvolvimento de uma metodologia para identificação automática de nuvens em imagens de satélite do Brazil Data Cube (INPE), com o objetivo de apoiar a geração de ortofotomosaicos para automatização do Cadastro Ambiental Rural (CAR) no Espírito Santo. Diante da ausência da banda NIR nas imagens disponíveis, foram adaptados índices espectrais equivalentes ao NDBI e NDCI para diferenciar nuvens de edificações de cor clara. O processamento foi acelerado via GPU, e os resultados preliminares indicam que a combinação dos índices adaptados com o processamento paralelo configura uma solução eficiente e escalável para a geração de máscaras binárias de nuvens com baixa taxa de falsos positivos.</p>
+      <div class="paper-actions" style="display:flex; flex-direction:column; align-items:flex-start;">
+        <p class="note">LOPES, J. A. N et al. Identificação de Nuvens em Imagens de satélite para Geração de Ortomosaico. Trabalho apresentado em: SIMPÓSIO INTEGRACAR, 1., 2026, Vitória.</p>
+        <div class="paper-actions__buttons" style="display:flex; flex-wrap:wrap; gap:12px;">
+          <a href="resumos/IDENTIFICAÇÃO DE NUVENS EM IMAGENS DE SATÉLITE PARA GERAÇÃO DE ORTOMOSAICO.pdf" class="btn btn--green" download>
+            Download (PDF)
+          </a>
+          <a href=""
+          class="btn btn--green"
+          target="_blank"
+          rel="noopener noreferrer">
+          Código
+          </a>
+        </div>
+      </div>
+
+      
+
+    </article>
+
+  </div>
 </section>
 
+<!-- FAIXA DE IMAGEM DE SATÉLITE -->
+<div class="section-divider"></div>
 
-<!-- EQUIPE -->
-<section id="equipe" class="section equipe">
-    <h1>Equipe</h1>
-
-    <div class="team-grid">
-        <div class="member"><h3>Francisco Boldt</h3><p>Doutor em Ciência da Computação</p></div>
-        <div class="member"><h3>Tomir Schmite</h3><p>Mestrando em Computação Aplicada</p></div>
-        <div class="member"><h3>Izabelly Glassiner</h3><p>Graduanda em Sistemas de Informação</p></div>
-        <div class="member"><h3>Julia Almeida</h3><p>Graduanda em Sistemas de Informação</p></div>
-        <div class="member"><h3>Rafael Deps</h3><p>Graduando em Sistemas de Informação</p></div>
-    </div>
-</section>
 
 <!-- REPOSITÓRIO -->
-<section class="section repositorio">
+<section id="repositorio" class="section">
+  <div class="section__inner">
+    <h2>Repositório</h2>
     <div class="repo-grid">
-        <div>
-            <h1>Repositório</h1>
-            <h2>Visite nosso repositório no GitHub</h2>
-        </div>
-
-        <a href="https://github.com/fboldt/sigma" class="repo-btn" target="_blank">
-            Abrir repositório
+      <div class="repo-card">
+        <h3>Visite nosso repositório no GitHub</h3>
+        <p>Códigos atualizados e tutoriais</p>
+        <a href="https://github.com/fboldt/sigma"
+          class="btn btn--green"
+          target="_blank"
+          rel="noopener noreferrer">
+          Abrir repositório
         </a>
+      </div>
+      <div class="repo-card">
+        <h3>Workflow automatizado para geração de ortomosaico</h3>
+        <p>Rode o código localmente</p>
+         <a href="https://github.com/izaglassiner/sigma-site/blob/main/tutoriais/tutorial-workflow.md"
+        class="btn btn--green"
+        target="_blank"
+        rel="noopener noreferrer">
+        Tutorial
+        </a>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- TUTORIAIS -->
-<section id="tutoriais" class="section tutoriais">
-    <div class="tutoriais-grid">
-        <div class="tutoriais-text">
-            <h1>Tutoriais</h1>
-            <h2>Documentação do projeto SIGMA</h2>
-            
-        </div>
+<!-- FAIXA DE IMAGEM DE SATÉLITE -->
+<div class="section-divider"></div>
 
-        <a
-            href="https://fboldt.github.io/sigma/tutorials/"
-            target="_blank"
-            class="tutoriais-btn"
-        >
-            Acessar tutoriais
-        </a>
+<!-- EQUIPE -->
+<section id="equipe" class="section">
+  <div class="section__inner">
+    <h2>Equipe</h2>
+    <div class="team-grid">
+      <div class="team-member">
+        <h4>Francisco Boldt</h4>
+        <p>Doutor em Ciência da Computação</p>
+      </div>
+      <div class="team-member">
+        <h4>Izabelly Glassiner</h4>
+        <p>Graduanda em Sistemas de Informação</p>
+      </div>
+      <div class="team-member">
+        <h4>Tomir Schmite</h4>
+        <p>Mestrando em Computação Aplicada</p>
+      </div>
+      <div class="team-member">
+        <h4>Gabriele Modesto</h4>
+        <p>Graduanda em Sistemas de Informação</p>
+      </div>
+      <div class="team-member">
+        <h4>Julia Almeida</h4>
+        <p>Graduanda em Sistemas de Informação</p>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- VÍDEOS -->
-<section class="section videos">
-    <div class="videos-grid">
-        <div class="videos-text">
-            <h1>Vídeos</h1>
-            <h2>Geração de Ortomosaicos para o Espírito Santo</h2>
-        </div>
-
-        <a
-            href="https://www.youtube.com/watch?v=qtAkCYE-Nv8"
-            target="_blank"
-            class="videos-btn"
-        >
-            Assistir no YouTube
-        </a>
-    </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-    SIGMA © 2025 — Todos os direitos reservados.
-</footer>
+<!-- RODAPÉ -->
+<footer class="footer"></footer>
 
 </body>
 </html>
