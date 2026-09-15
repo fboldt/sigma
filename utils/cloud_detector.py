@@ -11,7 +11,8 @@ def calcular_nuvens_tci(
     caminho_imagem,
     bbox_wgs84=None,
     salvar_mascara=True,
-    tamanho_bloco=1024
+    tamanho_bloco=1024,
+    salvar_blocos=True
 ):
     if bbox_wgs84 is not None:
         raise NotImplementedError(
@@ -20,6 +21,8 @@ def calcular_nuvens_tci(
         )
 
     caminho_mascara = None
+    pasta_blocos = None
+
     total_pixels_validos = 0
     total_pixels_nuvem = 0
     area_total_km2 = None
@@ -70,7 +73,7 @@ def calcular_nuvens_tci(
 
         limiar_brilho_global = np.clip(
             np.nanpercentile(brilho_s[valid_s], 94),
-            0.60,
+            0.55,
             0.80
         )
 
@@ -85,13 +88,22 @@ def calcular_nuvens_tci(
             compress="lzw"
         )
 
+        nome_base = os.path.splitext(os.path.basename(caminho_imagem))[0]
+        pasta = os.path.dirname(caminho_imagem)
+
         if salvar_mascara:
-            nome_base = os.path.splitext(os.path.basename(caminho_imagem))[0]
-            pasta = os.path.dirname(caminho_imagem)
             caminho_mascara = os.path.join(
                 pasta,
                 f"{nome_base}_mascara_nuvens.tif"
             )
+
+        if salvar_blocos:
+            pasta_blocos = os.path.join(
+                pasta,
+                f"{nome_base}_blocos_{tamanho_bloco}"
+            )
+
+            os.makedirs(pasta_blocos, exist_ok=True)
 
         dst = None
 
@@ -116,7 +128,28 @@ def calcular_nuvens_tci(
                         height=win_height
                     )
 
-                    rgb_cpu = src.read([1, 2, 3], window=window).astype("float32")
+                    rgb_original = src.read([1, 2, 3], window=window)
+
+                    if salvar_blocos:
+                        perfil_bloco = src.profile.copy()
+                        perfil_bloco.update(
+                            driver="GTiff",
+                            height=win_height,
+                            width=win_width,
+                            count=3,
+                            transform=src.window_transform(window),
+                            compress="lzw"
+                        )
+
+                        caminho_bloco = os.path.join(
+                            pasta_blocos,
+                            f"bloco_linha_{row_off}_coluna_{col_off}.tif"
+                        )
+
+                        with rasterio.open(caminho_bloco, "w", **perfil_bloco) as bloco_dst:
+                            bloco_dst.write(rgb_original)
+
+                    rgb_cpu = rgb_original.astype("float32")
 
                     red = cp.asarray(rgb_cpu[0])
                     green = cp.asarray(rgb_cpu[1])
@@ -145,6 +178,9 @@ def calcular_nuvens_tci(
                         if salvar_mascara:
                             dst.write(saida, 1, window=window)
 
+                        del rgb_original, rgb_cpu, red, green, blue, valid
+                        cp.get_default_memory_pool().free_all_blocks()
+
                         continue
 
                     r = cp.clip((red - p2_r) / (p98_r - p2_r + 1e-6), 0, 1)
@@ -167,9 +203,9 @@ def calcular_nuvens_tci(
                     mascara_nuvem = (
                         valid
                         & (brilho >= limiar_brilho)
-                        & (saturacao <= 0.16)
-                        & (brancura >= 0.84)
-                        & (r >= 0.68)
+                        & (saturacao <= 0.18)
+                        & (brancura >= 0.80)
+                        & (r >= 0.70)
                         & (g >= 0.68)
                         & (b >= 0.68)
                     )
@@ -196,6 +232,7 @@ def calcular_nuvens_tci(
                         dst.write(saida, 1, window=window)
 
                     del (
+                        rgb_original,
                         rgb_cpu,
                         red,
                         green,
@@ -227,11 +264,17 @@ def calcular_nuvens_tci(
             area_pixel_m2 = abs(src.transform.a * src.transform.e)
             area_total_km2 = total_pixels_validos * area_pixel_m2 / 1_000_000
             area_nuvem_km2 = total_pixels_nuvem * area_pixel_m2 / 1_000_000
+            '''if area_nuvem_km2 <= 5:
+                with open("C:/Users/Julia Almeida/sigma/teste_imagens/alerta_nuvens.txt", "w") as f_alerta:
+                    f_alerta.write(
+                        caminho_imagem 
+                    )'''
 
     return {
         "imagem": caminho_imagem,
         "percentual_nuvem": percentual_nuvem,
         "area_total_km2": area_total_km2,
         "area_nuvem_km2": area_nuvem_km2,
-        "mascara": caminho_mascara
+        "mascara": caminho_mascara,
+        "pasta_blocos": pasta_blocos
     }
