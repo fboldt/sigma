@@ -1,0 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #0d2b59;
+  background: #f4f6f0;
+}
+
+.section {
+  padding: 80px 140px;
+}
+a{
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: Black;
+}
