@@ -6,37 +6,41 @@ from utils.mosaic import mosaic_scenes
 from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
+import os
 
 def workflow_mosaic():
 
     # 1. Parâmetros de busca
+    # Download das bandas
     # Usuário cadastrado na plataforma do INPE
     user = 'email@email.com' # E-mail cadastrado na plataforma do INPE
-       
-    # Polígono do local de busca
-    # Localização: Espírito Santo (ES)
-    url = "https://servicodados.ibge.gov.br/api/v4/malhas/estados/32?formato=application/vnd.geo+json&qualidade=minima" # URL do Query Builder na API do IBGE
-    response = requests.get(url)
-    data = response.json()
-    polygon = shape(data['features'][0]['geometry'])
-   
-    # Especificações dos produtos a retornar
-    max_cloud = 10            # Cobertura de nuvens (max)
-    max_products =  100       # Número de cenas por Dataset (max)
 
+    # Coordenadas do local de busca
+    # Localização: Rio de Janeiro (RJ)
+    x_min = -43.4419159     # Oeste
+    y_min = -23.1644475     # Sul
+    x_max = -42.9159159     # Leste
+    y_max = -22.6384475     # Norte
+
+    # Bounding Box a partir das coordenadas informadas
+    bbox = [x_min, y_min, x_max, y_max]
+
+    # Especificações dos produtos a retornar
+    max_cloud = 0            # Cobertuda de nuvens (max)
+    max_products = 10        # Número de cenas por Dataset (max)
 
     # Intervalo para data da busca
-    initial_date = date(2023, 1, 1)      # ano, mês, dia
-    final_date = date(2026, 4, 29)       # ano, mês, dia
+    initial_date = date(2024, 1, 1)     # ano, mês, dia
+    final_date = date(2026, 9, 1)       # ano, mês, dia
 
     # Informações referentes ao download das bandas
-    bands = ['red', 'green', 'blue']    # Bandas para download
-    output_dir = './images'             # Diretório onde os arquivos serão salvos
+    bands = ['red', 'green', 'blue', 'pan']     # Bandas para download
+    output_dir = './images'                     # Diretório onde os arquivos serão salvos
 
     # Dicionário com as informações de busca
     params = {
         'user': user,
-        'bbox': Polygon(polygon),
+        'bbox': bbox,
         'max_cloud': max_cloud,
         'max_products': max_products,
         'initial_date': initial_date,
@@ -60,16 +64,17 @@ def workflow_mosaic():
 
     # 5. Composição RGB
     # Nome completo do arquivo de saída
-    output_file_path = './images/TRUE_COLOR'
+    output_file_path = './images/TRUE_COLOR' 
     print(f"Iniciando composição RGB.")
     files = rgb_batch_composite(all_bands_path, output_file_path)
     print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")
 
     # 6. Formação do mosaico
-    output_file_path='./images/NOVO_MOSAICO_SPECTRALMATCH'
+    output_file_path='./images/MOSAICO_EXEMPLO_WORKFLOW'
     print(f'Iniciando formação do mosaico.')
     mosaic_scenes(files, output_file_path)
     print(f'Processo concluído! Mosaico salvo em: {output_file_path}')
+
 
 if __name__ == "__main__":
     workflow_mosaic()
