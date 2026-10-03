@@ -9,9 +9,13 @@ from utils.mosaic_color_stats import (
     valid_overlap_mask,
 )
 from utils.mosaic_geometry import (
+    DEFAULT_WINDOW_SIZE,
     NODATA_VALUE,
     intersection_bounds,
+    iter_windows,
+    parallel_map,
     read_window_sample,
+    tiled_gtiff_profile,
     window_for_bounds,
 )
 
@@ -84,12 +88,9 @@ def profile_to_transforms(source_profile, target_profile, gain_limits=(0.55, 1.5
 # API de estimativa de transformações
 
 # Função para estimar o ajuste de cor de cada cena em relação a um alvo global (todas as cenas)
-def estimate_global_color_transforms(crs_files, reference_index=0, target_strategy=DEFAULT_COLOR_TARGET, strength=0.60,
+def estimate_global_color_transforms(crs_files, reference_index=0, target_strategy=DEFAULT_COLOR_TARGET, strength=0.60, workers=None,
 ):
-    scene_profiles = []
-    for index, path in enumerate(crs_files):
-        profile = estimate_scene_color_stats(path)
-        scene_profiles.append(profile)
+    scene_profiles = parallel_map(estimate_scene_color_stats, crs_files, workers)
 
     target_profile = target_profile_from_scenes(
         scene_profiles,
@@ -117,12 +118,23 @@ def estimate_global_color_transforms(crs_files, reference_index=0, target_strate
 
 
 # Função para aplicar o ganho/offset de cada banda diretamente em um array de pixels
-def apply_transforms_to_array(data, transforms):
-    corrected = data.astype("float32", copy=True)
+def apply_transforms_to_array(data, transforms, inplace=False):
+    corrected = data if inplace else data.astype("float32", copy=True)
     for band_index, transform in enumerate(transforms):
-        corrected[band_index] = (
-            corrected[band_index] * transform["gain"] + transform["offset"]
-        )
+        corrected[band_index] *= transform["gain"]
+        corrected[band_index] += transform["offset"]
+    return corrected
+
+
+# Função para aplicar o ganho/offset em um array (float32) 
+def apply_transforms_clipped(data, transforms, clip_max, clip_min=0, integer_output=True):
+    valid_mask = np.all(data > NODATA_VALUE, axis=0)
+    corrected = apply_transforms_to_array(data, transforms, inplace=True)
+    np.clip(corrected, clip_min, clip_max, out=corrected)
+    if integer_output:
+        # mesmo efeito de gravar em inteiro (trunca), para o nodata bater com o fluxo antigo
+        np.floor(corrected, out=corrected)
+    corrected[:, ~valid_mask] = NODATA_VALUE
     return corrected
 
 
@@ -134,7 +146,7 @@ def green_tint_index(data):
     return (green - 0.5 * (red + blue)) / np.maximum(brightness(data), 1.0)
 
 
-# Função para medir o quão boa ficou uma transformação de cor, comparando com a referência
+# Função para medir o qualidade de uma transformação de cor, comparando com a referência
 def estimate_transform_quality(reference, source, mask, transforms):
     corrected = apply_transforms_to_array(source, transforms)
     reference_brightness = brightness(reference)[mask]
@@ -169,7 +181,7 @@ def transforms_are_safe(metrics):
 
 
 # Função para estimar o ganho/offset de cada banda a partir da área de sobreposição entre duas cenas
-def estimate_overlap_match( reference_path, source_path, sample_max_size=1400, min_valid_pixels=1000, lower_percentile=20, upper_percentile=80, strength=0.75,
+def estimate_overlap_match( reference_path, source_path, sample_max_size=1400, min_valid_pixels=1000, lower_percentile=20, upper_percentile=80, strength=0.75, reference_transforms=None,
 ):
     with rio.open(reference_path) as reference_src, rio.open(source_path) as source_src:
         if reference_src.count != source_src.count:
@@ -196,6 +208,15 @@ def estimate_overlap_match( reference_path, source_path, sample_max_size=1400, m
 
         reference = read_window_sample(reference_src, reference_window, (out_height, out_width))
         source = read_window_sample(source_src, source_window, (out_height, out_width))
+        reference_dtype = np.dtype(reference_src.dtypes[0])
+
+    if reference_transforms is not None:
+        reference = apply_transforms_clipped(
+            reference,
+            reference_transforms,
+            clip_max_for_dtype(reference_dtype, DEFAULT_CLIP_MAX),
+            integer_output=np.issubdtype(reference_dtype, np.integer),
+        )
 
     mask = valid_overlap_mask(reference, source)
     valid_pixels = int(np.count_nonzero(mask))
@@ -233,27 +254,26 @@ def clip_max_for_dtype(dtype, requested_clip_max):
 
 
 # Função para aplicar o ganho/offset de cada banda em uma cena inteira e salvar o resultado
-def apply_band_transforms(source_path, output_path, transforms, clip_min=0, clip_max=DEFAULT_CLIP_MAX):
+def apply_band_transforms(source_path, output_path, transforms, clip_min=0, clip_max=DEFAULT_CLIP_MAX, window_size=DEFAULT_WINDOW_SIZE):
     with rio.open(source_path) as src:
-        profile = src.profile.copy()
-        profile.update(nodata=NODATA_VALUE, compress="lzw", BIGTIFF="YES")
-        output_clip_max = clip_max_for_dtype(src.dtypes[0], clip_max)
+        profile = tiled_gtiff_profile(src.profile.copy())
+        profile.update(nodata=NODATA_VALUE)
+        output_dtype = np.dtype(src.dtypes[0])
+        output_clip_max = clip_max_for_dtype(output_dtype, clip_max)
+        integer_output = np.issubdtype(output_dtype, np.integer)
 
         with rio.open(output_path, "w", **profile) as dst:
-            for _, window in src.block_windows(1):
+            for window in iter_windows(src.width, src.height, window_size):
                 data = src.read(window=window).astype("float32")
-                valid_mask = np.all(data > NODATA_VALUE, axis=0)
-
-                data = apply_transforms_to_array(data, transforms)
-
-                data = np.clip(data, clip_min, output_clip_max)
-                data[:, ~valid_mask] = NODATA_VALUE
-                dst.write(data.astype(src.dtypes[0]), window=window)
+                data = apply_transforms_clipped(
+                    data, transforms, output_clip_max, clip_min, integer_output
+                )
+                dst.write(data.astype(output_dtype), window=window)
 
     return output_path
 
 
-# Função para gerar transformações "neutras" (sem alterar nada), usadas como último recurso
+# Função para gerar transformações neutras
 def identity_transforms(path):
     with rio.open(path) as src:
         return [{"gain": 1.0, "offset": 0.0} for _ in range(src.count)]
