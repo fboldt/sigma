@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.download import bands_download
 from datetime import date
 import requests
@@ -6,7 +13,7 @@ from shapely.geometry import shape, Polygon
 def example_download_es(bands=['red', 'green', 'blue', 'nir', 'pan']):
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabelly.cristine.ic@gmail.com'
+    user = 'email@email.com'
         
     # Polígono do local de busca
     # Localização: Espírito Santo (ES)

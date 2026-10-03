@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.rgb import rgb_batch_composite
 from example_download_es import example_download_es
 

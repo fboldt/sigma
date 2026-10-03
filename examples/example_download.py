@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.download import bands_download
 from datetime import date
 
@@ -11,7 +18,7 @@ def example_download():
     y_max = -20.1270702     # Norte
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabelly.cristine.ic@gmail.com'
+    user = 'email@email.com'
 
     # Bounding Box a partir das coordenadas informadas
     bbox = [x_min, y_min, x_max, y_max]

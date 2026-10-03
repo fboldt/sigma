@@ -1,7 +1,10 @@
-import os
 import sys
-pasta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, pasta_raiz)
+import os
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
 
 from utils.pansharpening_tiles import processar_pansharpening_tiles
 from utils.definir_tile import definir_tamanho_tile

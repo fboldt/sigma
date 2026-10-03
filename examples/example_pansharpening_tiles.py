@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-# Faz o Python enxergar a pasta raiz (sigma) como pacote local.
-pasta_raiz = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(pasta_raiz))
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
 
 from utils.pansharpening_tiles import processar_pansharpening_tiles
 

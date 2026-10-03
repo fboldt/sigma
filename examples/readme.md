@@ -18,7 +18,7 @@ Para visualizá-los é preciso usar uma ferramenta de SIG
 Antes de rodar qualquer um dos exemplos abaixo, você vai precisar de:
 
 - **Git** instalado ([git-scm.com](https://git-scm.com/)).
-- **Python 3.10+** instalado.
+- **Python 3.11+** instalado.
 - Uma **conta cadastrada no catálogo do INPE**, já que o download das cenas
   do CBERS-4A exige um usuário válido (é o valor passado no campo `user` dos
   exemplos de download).
@@ -36,6 +36,7 @@ source venv/bin/activate        # Linux/macOS
 venv\Scripts\activate           # Windows
 
 # 3. Instalar as dependências
+python -m pip install --upgrade pip       # Opcional, evita erros com versões antigas do pip
 pip install -r requirements.txt
 ```
 
@@ -43,24 +44,10 @@ pip install -r requirements.txt
 
 Todos os scripts abaixo esperam ser executados **a partir da raiz do
 repositório** (não de dentro da pasta `examples/`), porque usam caminhos
-relativos como `./images` e fazem `import` de módulos da pasta `utils/`
-(ex.: `from utils.download import bands_download`). Para que o Python
-encontre esses módulos, é preciso incluir a raiz do projeto no
-`PYTHONPATH` ao rodar cada exemplo:
+relativos como `./images`. Basta rodar com o Python normalmente:
 
-**Linux / macOS:**
 ```bash
-PYTHONPATH=. python examples/nome_do_exemplo.py
-```
-
-**Windows (PowerShell):**
-```powershell
-$env:PYTHONPATH = "."; python examples/nome_do_exemplo.py
-```
-
-**Windows (Prompt de Comando / cmd):**
-```cmd
-set PYTHONPATH=. && python examples/nome_do_exemplo.py
+python examples/nome_do_exemplo.py
 ```
 
 Antes de rodar, abra o script e ajuste os parâmetros conforme necessário
@@ -84,8 +71,7 @@ e as bandas desejadas.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_download.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_download.py  # Windows (PowerShell)
+python examples/example_download.py
 ```
 
 **Resultado esperado:** uma subpasta dentro de `output_dir` (por padrão
@@ -109,8 +95,7 @@ composição (`output_file_path`, ex.: `./images/TRUE_COLOR`).
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_download_and_rgb.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_download_and_rgb.py  # Windows (PowerShell)
+python examples/example_download_and_rgb.py
 ```
 
 **Resultado esperado:** as pastas de bandas baixadas em `./images/...` e, em
@@ -135,8 +120,7 @@ azul) de uma cena específica.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_rgb.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_rgb.py  # Windows (PowerShell)
+python examples/example_rgb.py
 ```
 
 Ajuste os caminhos das bandas para apontar para uma cena que você já tenha
@@ -168,8 +152,7 @@ antes mesmo de começar o processamento.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/exemple_pansharpening_tiles.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/exemple_pansharpening_tiles.py  # Windows (PowerShell)
+python examples/exemple_pansharpening_tiles.py
 ```
 
 **Resultado esperado:** um arquivo `pansharpened_output.tif` na raiz do
@@ -194,8 +177,7 @@ prioridade no merge das áreas sobrepostas.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_mosaic.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_mosaic.py  # Windows (PowerShell)
+python examples/example_mosaic.py
 ```
 
 Substitua a lista `cenas` pelos arquivos de composição RGB que você já
@@ -223,8 +205,7 @@ resolução máxima toda vez que você dá zoom out.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_piramide.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_piramide.py  # Windows (PowerShell)
+python examples/example_piramide.py
 ```
 
 **Resultado esperado:** uma nova cópia do raster com as pirâmides embutidas,
@@ -238,41 +219,91 @@ no início do documento).
 
 ## 7. Workflow automatizado — `example_workflow.py`
 
-Depois de entender cada etapa isoladamente, o `example_workflow.py` encadeia
-automaticamente, em um único script, as etapas de busca, filtragem, download
-e processamento das cenas, sem intervenção manual entre uma etapa e outra:
+Depois de entender cada etapa isoladamente, o `example_workflow.py` encadeia,
+em um único script, a busca, o download, a composição RGB, o mosaico e as
+pirâmides, sem intervenção manual entre uma etapa e outra:
 
-1. **Busca** dos produtos disponíveis para a área e o período informados
-   (`search_products`).
-2. **Filtragem** dos produtos retornados que caem em um mesmo local
-   (`products_filter`).
-3. **Download** das bandas dos produtos já filtrados (`bands_download`).
-4. **Composição RGB** em lote de todas as cenas baixadas
+1. **Busca e download** das bandas dos produtos disponíveis para a área e o
+   período informados (`bands_download`, que faz a consulta ao catálogo e
+   baixa as cenas encontradas).
+2. **Composição RGB** em lote de todas as cenas baixadas
    (`rgb_batch_composite`).
-5. **Formação do mosaico** a partir das composições geradas
+3. **Formação do mosaico** a partir das composições geradas
    (`mosaic_scenes`).
+4. **Pirâmides** no mosaico final (`gerar_copia_com_piramides`).
 
 **Parâmetros principais configurados no exemplo:**
-- `user`: e-mail cadastrado na plataforma do INPE.
-- `bbox`: coordenadas da área de interesse (no exemplo, Rio de Janeiro - RJ).
+- `user`: e-mail cadastrado na plataforma do INPE (**troque pelo seu**).
+- `bbox`: coordenadas da área de interesse (no exemplo, Grande Vitória - ES).
 - `max_cloud` / `max_products`: filtros de cobertura de nuvens e número de
   cenas por dataset.
 - `initial_date` / `final_date`: intervalo de busca.
-- `bands`: bandas a baixar (no exemplo, `red`, `green`, `blue`, `pan`).
+- `bands`: bandas a baixar (no exemplo, `red`, `green`, `blue`, `nir`).
 - `output_dir`: pasta de saída das bandas (`./images`).
-- caminho do mosaico final (`./images/MOSAICO_EXEMPLO_WORKFLOW`).
+- caminhos de saída: composições em `./images/TRUE_COLOR` e mosaico em
+  `./images/MOSAICO_WORKFLOW.tif`.
 
 **Como executar:**
 ```bash
-PYTHONPATH=. python examples/example_workflow.py          # Linux/macOS
-$env:PYTHONPATH="."; python examples/example_workflow.py  # Windows (PowerShell)
+python examples/example_workflow.py
 ```
 
-**Resultado esperado:** ao final da execução, um mosaico único (por padrão
-`MOSAICO_EXEMPLO_WORKFLOW.tif`) reunindo todas as cenas encontradas, filtradas,
-baixadas e compostas em RGB automaticamente. Assim como todos os outros
-resultados deste pipeline, é um arquivo `.tif` georreferenciado, que só pode
-ser visualizado corretamente em uma ferramenta de SIG como o QGIS (veja a
-observação no início do documento).
+**Resultado esperado:** as bandas baixadas em `./images/...`, uma composição
+RGB por cena (`TRUE_COLOR_<cena>.tif`), o mosaico `MOSAICO_WORKFLOW.tif` e,
+ao final, uma cópia com pirâmides (`MOSAICO_WORKFLOW_com_piramides.tif`).
+Assim como todos os outros resultados deste pipeline, são arquivos `.tif`
+georreferenciados, que só podem ser visualizados corretamente em uma
+ferramenta de SIG como o QGIS (veja a observação no início do documento).
 
 **Código:** https://github.com/fboldt/sigma/blob/main/examples/example_workflow.py
+
+---
+
+## 8. Detecção de nuvens — `example_cloud_detector.py`
+
+Este exemplo lê todas as imagens `.tif`/`.tiff` de uma pasta (por padrão,
+`imagens_cbers4a`) e, para cada uma, calcula o percentual de área coberta
+por nuvens usando a função `calcular_nuvens_tci` (`utils/cloud_detector.py`).
+
+**Como a detecção funciona:** a imagem é lida em blocos (padrão de
+`tamanho_bloco` pixels, `2048` no exemplo) para não estourar memória.
+Primeiro, a função tira uma amostra da imagem inteira para calcular, por
+canal (R, G, B), os percentis 2 e 98 (usados para normalizar o contraste)
+e um limiar global de brilho. Depois, bloco a bloco (processado na GPU via
+`cupy`), ela classifica como nuvem os pixels que são simultaneamente
+**claros** (brilho acima do limiar), **pouco saturados** e **bem
+esbranquiçados** (baixa diferença entre os canais RGB), aplicando em
+seguida operações morfológicas (`binary_opening`/`binary_closing`) para
+limpar ruído da máscara. No fim, soma os pixels de nuvem e os pixels
+válidos de todos os blocos para obter o percentual de nuvem da imagem
+inteira (e a área em km², quando a imagem tem um CRS projetado).
+
+Para cada imagem processada, o script:
+1. Salva uma máscara de nuvens (`<nome_da_imagem>_mascara_nuvens.tif`), se
+   `salvar_mascara=True`.
+2. Salva os blocos RGB originais em uma subpasta (`<nome_da_imagem>_blocos_<tamanho>`),
+   se `salvar_blocos=True`.
+3. Se o percentual de nuvens for **menor ou igual a 3%**, copia a imagem
+   original para uma pasta de "imagens boas" — no exemplo, há um caminho
+   fixo do Windows que
+   **precisa ser trocado** para um caminho válido na sua máquina antes de
+   rodar.
+4. Ao final, monta uma tabela com os resultados de todas as imagens
+   (ordenada pelo percentual de nuvem) e salva em
+   `resultado_nuvens_cbers4a.csv`.
+
+**Como executar:**
+```bash
+python examples/example_cloud_detector.py
+```
+
+**Resultado esperado:** no console, o percentual de nuvem impresso para
+cada imagem analisada; ao final, uma tabela resumo e o arquivo
+`resultado_nuvens_cbers4a.csv` com as colunas `imagem`, `percentual_nuvem`,
+`area_total_km2` e `area_nuvem_km2`. Além disso, para cada imagem: um
+`.tif` de máscara de nuvens e (se `salvar_blocos=True`) uma subpasta com
+os blocos RGB — todos arquivos `.tif`, que só podem ser visualizados
+corretamente em uma ferramenta de SIG como o QGIS (veja a observação no
+início do documento).
+
+**Código:** https://github.com/fboldt/sigma/blob/main/examples/example_cloud_detector.py

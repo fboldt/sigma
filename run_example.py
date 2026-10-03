@@ -3,6 +3,8 @@ from utils.filter import products_filter
 from utils.download import bands_download
 from utils.rgb import rgb_batch_composite
 from utils.mosaic import mosaic_scenes
+from utils.pansharpening_tiles import pansharpening_batch_composite
+from utils.piramide import gerar_copia_com_piramides
 from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
@@ -30,7 +32,7 @@ def workflow_mosaic():
     final_date = date(2026, 4, 29)       # ano, mês, dia
 
     # Informações referentes ao download das bandas
-    bands = ['red', 'green', 'blue']    # Bandas para download
+    bands = ['red', 'green', 'blue', 'nir', 'pan']    # Bandas para download
     output_dir = './images'             # Diretório onde os arquivos serão salvos
 
     # Dicionário com as informações de busca
@@ -65,11 +67,26 @@ def workflow_mosaic():
     files = rgb_batch_composite(all_bands_path, output_file_path)
     print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")
 
-    # 6. Formação do mosaico
-    output_file_path='./images/NOVO_MOSAICO_SPECTRALMATCH'
+        # 6. Pansharpening
+    pansharp_dir = './images/pansharp'
+    print(f"Iniciando pansharpening.")
+    pansharp_files = pansharpening_batch_composite(
+        all_bands_path,
+        files,
+        f'{pansharp_dir}/PANSHARP',
+    )
+    print(f"Pansharpening finalizado! Arquivos salvos em: {pansharp_dir}")
+
+    # 7. Formação do mosaico
+    output_file_path = './images/MOSAICO_ES_PANSHARPENING.tif'
     print(f'Iniciando formação do mosaico.')
-    mosaic_scenes(files, output_file_path)
-    print(f'Processo concluído! Mosaico salvo em: {output_file_path}')
+    mosaic_scenes(pansharp_files, output_file_path, clip_state="ES")
+    print(f'Mosaico concluído! Mosaico salvo em: {output_file_path}')
+
+    # 8. Adicionar pirâmides
+    print(f'Iniciando adição de pirâmides.')
+    gerar_copia_com_piramides(output_file_path)
+    print(f'Pirâmides adicionadas! Arquivo final salvo em: {output_file_path.replace(".tif", "_com_piramides.tif")}')
 
 if __name__ == "__main__":
     workflow_mosaic()

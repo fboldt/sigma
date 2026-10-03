@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.pansharpening import generate_pansharpened_image
 from rasterio.plot import show
 

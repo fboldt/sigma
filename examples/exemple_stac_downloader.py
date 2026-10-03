@@ -1,9 +1,10 @@
 import os
 import sys
+from pathlib import Path
 
-# Força o Python a enxergar a pasta raiz (sigma) como o diretório principal absoluto
-pasta_raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, pasta_raiz)
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
 
 from utils.stac_downloader import buscar_itens_stac, baixar_asset
 
