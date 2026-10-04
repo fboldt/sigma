@@ -16,6 +16,7 @@ Antes de começar, você vai precisar ter instalado:
 
 - [Git](https://git-scm.com/)
 - [Python 3.10+](https://www.python.org/downloads/)
+- Uma **conta cadastrada no catálogo de imagens do INPE** ([cadastro gratuito](https://www.dgi.inpe.br/catalogo/explore)), necessária para o download das cenas.
 
 ## Instalação e execução local
 
@@ -44,7 +45,17 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**4. Execute o projeto**
+**4. Configure o seu e-mail do INPE**
+
+O download das imagens exige um usuário cadastrado no [catálogo de imagens do INPE](https://www.dgi.inpe.br/catalogo/explore). Antes de executar, abra o arquivo `run_example.py` e troque o e-mail de exemplo pelo e-mail da sua conta no catálogo, na variável `user`:
+
+```python
+user = 'seu_email@exemplo.com'  # E-mail cadastrado no catálogo de imagens do INPE
+```
+
+Sem essa alteração, o download das cenas não funciona. O mesmo vale para os scripts da pasta `examples/` que fazem download.
+
+**5. Execute o projeto**
 ```bash
 python run_example.py
 ```
