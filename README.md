@@ -15,7 +15,7 @@ O trabalho está vinculado ao **IntegraCAR**, o maior projeto de extensão do If
 Antes de começar, você vai precisar ter instalado:
 
 - [Git](https://git-scm.com/)
-- [Python 3.10+](https://www.python.org/downloads/)
+- [Python 3.11+](https://www.python.org/downloads/)
 - Uma **conta cadastrada no catálogo de imagens do INPE** ([cadastro gratuito](https://www.dgi.inpe.br/catalogo/explore)), necessária para o download das cenas.
 
 ## Instalação e execução local
