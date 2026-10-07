@@ -9,11 +9,16 @@ from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
 def workflow_mosaic():
 
     # 1. Parâmetros de busca
     # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com' # E-mail cadastrado na plataforma do INPE
+    user = email_inpe # E-mail cadastrado na plataforma do INPE
        
     # Polígono do local de busca
     # Localização: Espírito Santo (ES)
