@@ -8,6 +8,11 @@ sys.path.append(project_dir)
 from utils.download import bands_download
 from datetime import date
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
 def example_download():
         
     # Coordenadas do local de busca
@@ -18,7 +23,7 @@ def example_download():
     y_max = -20.1270702     # Norte
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com'
+    user = email_inpe
 
     # Bounding Box a partir das coordenadas informadas
     bbox = [x_min, y_min, x_max, y_max]
