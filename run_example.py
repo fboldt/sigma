@@ -1,24 +1,16 @@
 import argparse
-from examples.example_rgb import example_rgb
-from examples.example_download import example_download
-from examples.contorno_es import contorno_es
+from imports import available_examples
 
-
-list_of_avaliable_examples = [
-    "example_rgb",
-    "example_download",
-    "contorno_es"
-]
-
-def run_example(example_name):
-    if example_name in list_of_avaliable_examples:
-        eval(f"{example_name}()")
+def run_example(example_name, *args, **kwargs):    
+    if example_name in available_examples:
+        available_examples[example_name].run(*args, **kwargs)
     else:
         print(f"Exemplo '{example_name}' não encontrado.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Executar exemplos")
-    parser.add_argument("example", choices=list_of_avaliable_examples, help="Nome do exemplo a ser executado")
+    parser.add_argument("example", choices=list(available_examples.keys()), help="Nome do exemplo a ser executado")
+    parser.add_argument("args", nargs="*", help="Argumentos adicionais para o exemplo")
     args = parser.parse_args()
-    run_example(args.example)
+    run_example(args.example, *args.args)
     print("Exemplo executado com sucesso!")
