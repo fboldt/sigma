@@ -1,11 +1,13 @@
 import argparse
 from examples.example_rgb import example_rgb
 from examples.example_download import example_download
+from examples.contorno_es import contorno_es
 
 
 list_of_avaliable_examples = [
     "example_rgb",
-    "example_download"
+    "example_download",
+    "contorno_es"
 ]
 
 def run_example(example_name):
@@ -19,4 +21,4 @@ if __name__ == "__main__":
     parser.add_argument("example", choices=list_of_avaliable_examples, help="Nome do exemplo a ser executado")
     args = parser.parse_args()
     run_example(args.example)
-    print("Teste da composição RGB concluído com sucesso!")
+    print("Exemplo executado com sucesso!")
