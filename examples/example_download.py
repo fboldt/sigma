@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.download import bands_download
 from datetime import date
 
@@ -11,21 +18,23 @@ def example_download():
     y_max = -20.1270702     # Norte
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabelly.cristine.ic@gmail.com'
+    user = 'modestogabriele6@gmail.com'
 
     # Bounding Box a partir das coordenadas informadas
     bbox = [x_min, y_min, x_max, y_max]
 
     # Especificações dos produtos a retornar
     max_cloud = 10          # Cobertura de nuvens (max)
-    max_products =  5       # Número de cenas por Dataset (max)
+    # Um unico produto mantem este exemplo curto. O tempo exato ainda depende
+    # da disponibilidade do servidor do INPE e da rede.
+    max_products = 1        # Numero maximo de cenas
 
     # Intervalo para data da busca
     initial_date = date(2025, 1, 1)     # ano, mês, dia
     final_date = date(2025, 7, 12)      # ano, mês, dia
 
     # Bandas para download
-    bands = ['red', 'green', 'blue', 'nir', 'pan'] # Opcional. Caso não definido, baixará as bandas vermelha, verde, azul, NIR e PAN
+    bands = ['blue', 'green', 'red', 'nir', 'pan']  # Bandas completas de uma cena
 
     # Diretório para download das bandas
     output_dir = './images'
