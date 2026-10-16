@@ -18,7 +18,7 @@ def example_download():
     y_max = -20.1270702     # Norte
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'modestogabriele6@gmail.com'
+    user = 'email@email.com'
 
     # Bounding Box a partir das coordenadas informadas
     bbox = [x_min, y_min, x_max, y_max]

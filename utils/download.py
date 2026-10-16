@@ -23,7 +23,6 @@ RANGE_DOWNLOAD_WORKERS = 4
 class RangeDownloadError(RuntimeError):
     """O servidor recusou uma requisicao HTTP parcial."""
 
-
 def _make_session():
     """Cria uma sessao HTTP com tentativas automaticas para erros temporarios."""
     retry_policy = Retry(
