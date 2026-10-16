@@ -16,6 +16,7 @@ geomet
 geopandas
 idna
 ImageIO
+importlib
 kiwisolver
 lazy-loader
 matplotlib

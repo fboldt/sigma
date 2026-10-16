@@ -1,5 +1,5 @@
 import argparse
-from imports import available_examples
+from examples_catalog import available_examples
 
 def run_example(example_name, *args, **kwargs):    
     if example_name in available_examples:
@@ -13,4 +13,4 @@ if __name__ == "__main__":
     parser.add_argument("args", nargs="*", help="Argumentos adicionais para o exemplo")
     args = parser.parse_args()
     run_example(args.example, *args.args)
-    print("Exemplo executado com sucesso!")
+    print()
