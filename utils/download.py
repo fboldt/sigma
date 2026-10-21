@@ -23,6 +23,7 @@ RANGE_DOWNLOAD_WORKERS = 4
 class RangeDownloadError(RuntimeError):
     """O servidor recusou uma requisicao HTTP parcial."""
 
+
 def _make_session():
     """Cria uma sessao HTTP com tentativas automaticas para erros temporarios."""
     retry_policy = Retry(
@@ -171,6 +172,11 @@ def _download_bands_parallel(products, bands, output_dir, email, workers):
             url = item.band_url(band)
             tasks.append((band, url, scene_dir / Path(url).name))
 
+    _run_download_tasks(tasks, email, workers)
+
+
+def _run_download_tasks(tasks, email, workers):
+    """Executa tarefas de bandas independentes antes de aguardar resultados."""
     if not tasks:
         raise ValueError("Nenhuma banda foi encontrada para baixar.")
 
@@ -181,6 +187,7 @@ def _download_bands_parallel(products, bands, output_dir, email, workers):
         ]
         for future in as_completed(futures):
             future.result()
+
 
 def bands_download(params, products=None):
     """Busca cenas quando necessario e baixa as bandas pedidas em paralelo.
