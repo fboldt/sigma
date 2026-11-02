@@ -1,16 +1,204 @@
 from cbers4asat import Cbers4aAPI
+from cbers4asat.cbers4a import ItemCollection
 from datetime import date
 import os
 import glob
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 import time
-import logging
-logger = logging.getLogger(__name__)
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 
-# Função para baixar produtos
+# Tamanho de cada bloco gravado no disco durante a transferencia HTTP.
+DOWNLOAD_CHUNK_SIZE = 8 * 1024 * 1024
+# Arquivos maiores que este valor podem ser divididos em intervalos paralelos.
+RANGE_DOWNLOAD_THRESHOLD = 256 * 1024 * 1024
+# Numero de conexoes usadas para montar um arquivo grande por intervalos.
+RANGE_DOWNLOAD_WORKERS = 4
+
+
+class RangeDownloadError(RuntimeError):
+    """O servidor recusou uma requisicao HTTP parcial."""
+
+
+def _make_session():
+    """Cria uma sessao HTTP com tentativas automaticas para erros temporarios."""
+    retry_policy = Retry(
+        total=2,
+        connect=2,
+        read=2,
+        status=2,
+        backoff_factor=1,
+        status_forcelist=(500, 502, 503, 504),
+        allowed_methods={"GET"},
+    )
+    session = requests.Session()
+    adapter = HTTPAdapter(max_retries=retry_policy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+
+def _download_asset(url, email, output_path, retries=3):
+    """Baixa uma banda para um arquivo temporario e a renomeia ao concluir.
+
+    Para arquivos grandes, tenta usar quatro intervalos HTTP simultaneos. Caso
+    o servidor recuse intervalos, baixa a mesma banda em uma unica conexao.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    partial_path = output_path.with_suffix(f"{output_path.suffix}.part")
+    size = _content_length(url, email)
+
+    for attempt in range(1, retries + 1):
+        try:
+            if size is not None and size >= RANGE_DOWNLOAD_THRESHOLD:
+                try:
+                    _download_large_asset(url, email, partial_path, size)
+                except (RangeDownloadError, requests.RequestException):
+                    if partial_path.exists():
+                        partial_path.unlink()
+                    _download_stream(url, email, partial_path)
+            else:
+                _download_stream(url, email, partial_path)
+            os.replace(partial_path, output_path)
+            return
+        except requests.RequestException:
+            if partial_path.exists():
+                partial_path.unlink()
+            if attempt == retries:
+                raise
+            time.sleep(attempt * 2)
+
+
+def _download_stream(url, email, partial_path):
+    """Transfere uma banda inteira em uma conexao HTTP, em blocos de 8 MB."""
+    with _make_session() as session:
+        with session.get(
+            url,
+            params={"email": email},
+            stream=True,
+            allow_redirects=True,
+            timeout=(30, 120),
+        ) as response:
+            response.raise_for_status()
+            with open(partial_path, "wb") as file:
+                for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
+                    if chunk:
+                        file.write(chunk)
+
+
+def _content_length(url, email):
+    """Consulta o tamanho remoto de uma banda para decidir se usa intervalos."""
+    with _make_session() as session:
+        response = session.head(
+            url,
+            params={"email": email},
+            allow_redirects=True,
+            timeout=(30, 120),
+        )
+        response.raise_for_status()
+        length = response.headers.get("content-length")
+        return int(length) if length is not None else None
+
+
+def _download_range(url, email, partial_path, start, end):
+    """Baixa um intervalo de bytes e o grava na posicao correta do .part."""
+    with _make_session() as session:
+        with session.get(
+            url,
+            params={"email": email},
+            headers={"Range": f"bytes={start}-{end}"},
+            stream=True,
+            allow_redirects=True,
+            timeout=(30, 120),
+        ) as response:
+            if response.status_code != 206:
+                raise RangeDownloadError(
+                    f"O servidor recusou o intervalo {start}-{end} (HTTP {response.status_code})."
+                )
+            with open(partial_path, "r+b") as file:
+                file.seek(start)
+                written = 0
+                for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
+                    if chunk:
+                        file.write(chunk)
+                        written += len(chunk)
+
+    expected = end - start + 1
+    if written != expected:
+        raise RangeDownloadError(
+            f"Intervalo incompleto: esperado {expected} bytes, recebido {written}."
+        )
+
+
+def _download_large_asset(url, email, partial_path, size):
+    """Monta um arquivo grande a partir de quatro intervalos HTTP paralelos."""
+    with open(partial_path, "wb") as file:
+        file.truncate(size)
+
+    part_size = (size + RANGE_DOWNLOAD_WORKERS - 1) // RANGE_DOWNLOAD_WORKERS
+    ranges = [
+        (start, min(start + part_size - 1, size - 1))
+        for start in range(0, size, part_size)
+    ]
+    with ThreadPoolExecutor(max_workers=len(ranges)) as executor:
+        futures = [
+            executor.submit(_download_range, url, email, partial_path, start, end)
+            for start, end in ranges
+        ]
+        for future in as_completed(futures):
+            future.result()
+
+
+def _download_bands_parallel(products, bands, output_dir, email, workers):
+    """Resolve os URLs das bandas e inicia todos os downloads em paralelo.
+
+    ItemCollection e get_features_assets pertencem ao cbers4asat e sao usados
+    somente para consultar o catalogo INPE. A transferencia dos arquivos e'
+    feita pelas funcoes _download_asset deste modulo, usando requests.
+    """
+    products_with_assets = ItemCollection(**products)
+    # A busca por area traz somente a miniatura. Esta chamada busca os assets
+    # (URLs das bandas) de cada produto, como a biblioteca faz internamente.
+    products_with_assets.get_features_assets()
+
+    tasks = []
+    for item in products_with_assets:
+        scene_dir = Path(output_dir) / item.id
+        for band in bands:
+            url = item.band_url(band)
+            tasks.append((band, url, scene_dir / Path(url).name))
+
+    _run_download_tasks(tasks, email, workers)
+
+
+def _run_download_tasks(tasks, email, workers):
+    """Executa tarefas de bandas independentes antes de aguardar resultados."""
+    if not tasks:
+        raise ValueError("Nenhuma banda foi encontrada para baixar.")
+
+    with ThreadPoolExecutor(max_workers=min(workers, len(tasks))) as executor:
+        futures = [
+            executor.submit(_download_asset, url, email, path)
+            for _, url, path in tasks
+        ]
+        for future in as_completed(futures):
+            future.result()
+
+
 def bands_download(params, products=None):
-    # Instanciando o objeto com o usuário cadastrado na plataforma
+    """Busca cenas quando necessario e baixa as bandas pedidas em paralelo.
+
+    A API cbers4asat e' usada para a busca espacial e para obter os URLs dos
+    assets. Esta funcao nao chama api.download(), pois o modulo implementa a
+    transferencia HTTP concorrente em _download_bands_parallel.
+    """
+    # Instanciando o objeto com o usuario cadastrado na plataforma.
     api = Cbers4aAPI(params['user'])
+    os.makedirs(params['output_dir'], exist_ok=True)
 
     if products == None:
         # Busca por produtos
@@ -25,122 +213,23 @@ def bands_download(params, products=None):
     # Definido bandas para download
     bands = params.get('bands', ['red', 'green', 'blue', 'nir', 'pan'])
 
-    # A banda PAN tem limite de cota da API (10 downloads/hora), então é baixada separadamente, com espaçamento de tempo. 
-    bands_sem_pan = [b for b in bands if b != 'pan']
-    baixar_pan = 'pan' in bands
-
-    downloaded_rgb_nir = {'type': products.get('type', 'FeatureCollection'), 'features': []}
-    if bands_sem_pan:
-        downloaded_rgb_nir = download_with_retries(api=api,
-                 products=products,
-                 bands=bands_sem_pan,
-                 outdir=params['output_dir']
-                 )
-
-    if baixar_pan:
-        download_pan_with_retries(api=api,
-                 products=products,
-                 outdir=params['output_dir'],
-                 requests_per_hour=params.get('pan_requests_per_hour', 10)
-                 )
-
-    # Localização de produtos baixados. Usa a lista completa de produtos consultados
-    all_bands_paths = bands_paths(params['output_dir'], products)
+    # A implementacao da biblioteca aguarda uma tarefa antes de submeter a
+    # proxima. Aqui todas as bandas sao submetidas antes de qualquer espera.
+    workers = params.get('download_workers', min(8, len(bands) * len(products['features'])))
+    _download_bands_parallel(
+        products,
+        bands,
+        params['output_dir'],
+        params['user'],
+        max(1, workers),
+    )
+    
+    # Localização de produtos baixados
+    all_bands_paths = bands_paths(params['output_dir'], products, bands)
     return all_bands_paths
 
-
-# Função para baixar os produtos em rodadas
-def download_with_retries(api, products, bands, outdir, max_trials=5, wait_time=60):
-    downloaded_products = []
-    pending_products = list(products['features'])
-    errors = {}
-
-    trial = 1
-    while pending_products and trial <= max_trials:
-        failed_this_round = []
-
-        for product in pending_products:
-            id_product = {'type': products.get('type', 'FeatureCollection'), 'features': [product]}
-            try:
-                api.download(products=id_product, bands=bands,
-                             threads=len(bands), outdir=outdir, with_folder=True)
-                downloaded_products.append(product)
-                errors.pop(product['id'], None)
-            except Exception as e:
-                errors[product['id']] = repr(e)
-                logger.warning("Falha ao baixar %s (tentativa %d): %r", product['id'], trial, e)
-                failed_this_round.append(product)
-
-        pending_products = failed_this_round
-        if pending_products and trial < max_trials:
-            time.sleep(wait_time)
-        trial += 1
-
-    result = {'type': products.get('type', 'FeatureCollection'), 'features': downloaded_products}
-    return result, errors
-
-
-# Função para baixar a banda PAN respeitando o limite de cota da API (10 downloads/hora por e-mail). 
-def download_pan_with_retries(api, products, outdir, max_trials=3, requests_per_hour=10, wait_time=30):
-    downloaded_products = []
-    pending_products = list(products['features'])
-
-    # Intervalo mínimo entre downloads de PAN, com margem de segurança de 5%
-    min_interval = (3600 / requests_per_hour) * 1.05
-
-    trial = 1
-    while pending_products and trial <= max_trials:
-        failed_this_round = []
-        quota_hit = False
-
-        for i, product in enumerate(pending_products):
-            if quota_hit:
-                failed_this_round.append(product)
-                continue
-
-            id_product = {'type': products.get('type', 'FeatureCollection'), 'features': [product]}
-
-            try:
-                api.download(products=id_product,
-                             bands=['pan'],
-                             threads=1,
-                             outdir=outdir,
-                             with_folder=True
-                             )
-                downloaded_products.append(product)
-
-                if i < len(pending_products) - 1:
-                    time.sleep(min_interval)
-
-            except Exception as e:
-                message = str(e)
-
-                if "limite" in message.lower() or "limit" in message.lower():
-                    failed_this_round.append(product)
-                    quota_hit = True
-                else:
-                    failed_this_round.append(product)
-                    time.sleep(wait_time)
-
-        pending_products = failed_this_round
-
-        if pending_products:
-            if trial < max_trials:
-                if quota_hit:
-                    time.sleep(3600)
-                else:
-                    time.sleep(wait_time)
-
-        trial += 1
-
-    if pending_products:
-        failed_ids = [produto['id'] for produto in pending_products]
-
-    return {'type': products.get('type', 'FeatureCollection'), 'features': downloaded_products}
-
-
-# Função para localizar os caminhos das bandas RGB dos produtos baixados
-def bands_paths(output_dir, produtos):
+def bands_paths(output_dir, produtos, bands=None):
+    """Monta os caminhos esperados das bandas baixadas para cada produto."""
     all_bands_paths = [] 
     
     for produto_info in produtos['features']:
@@ -159,28 +248,17 @@ def bands_paths(output_dir, produtos):
         # Prefixo para os nomes dos arquivos contendo as bandas
         scene_id_prefix = f"CBERS_4A_WPM_{produto_info['properties']['datetime'][:10].replace('-', '')}_{produto_info['properties']['path']}_{produto_info['properties']['row']}_L4"
         
-        # Caminhos completos para as bandas
-        nir_band_path = os.path.join(scene_dir, f"{scene_id_prefix}_BAND4.tif")
-        red_band_path = os.path.join(scene_dir, f"{scene_id_prefix}_BAND3.tif")
-        green_band_path = os.path.join(scene_dir, f"{scene_id_prefix}_BAND2.tif")
-        blue_band_path = os.path.join(scene_dir, f"{scene_id_prefix}_BAND1.tif")
-        pan_band_path = os.path.join(scene_dir, f"{scene_id_prefix}_BAND0.tif")
+        band_numbers = {'blue': 1, 'green': 2, 'red': 3, 'nir': 4, 'pan': 0}
+        requested_bands = bands or ['red', 'green', 'blue', 'nir', 'pan']
+        scene_paths = {'id': produto_id}
+        for band in requested_bands:
+            if band not in band_numbers:
+                raise ValueError(f"Banda desconhecida: {band}")
+            scene_paths[band] = os.path.join(
+                scene_dir, f"{scene_id_prefix}_BAND{band_numbers[band]}.tif"
+            )
 
-        # Adição à lista contendo o caminho das bandas de todas as cenas baixadas
-        scene_bands = {'id': produto_id}
-
-        # Cada banda só entra no dicionário se ela tiver sido baixada
-        if os.path.exists(red_band_path):
-            scene_bands['red'] = red_band_path
-        if os.path.exists(green_band_path):
-            scene_bands['green'] = green_band_path
-        if os.path.exists(blue_band_path):
-            scene_bands['blue'] = blue_band_path
-        if os.path.exists(nir_band_path):
-            scene_bands['nir'] = nir_band_path
-        if os.path.exists(pan_band_path):
-            scene_bands['pan'] = pan_band_path
-
-        all_bands_paths.append(scene_bands)
+        # Retorna somente as bandas solicitadas pelo chamador.
+        all_bands_paths.append(scene_paths)
         
     return all_bands_paths
