@@ -5,13 +5,6 @@ from pathlib import Path
 project_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(project_dir)
 
-import sys
-from pathlib import Path
-
-# Sobe um nível para o diretório principal do projeto e adiciona ao path
-project_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(project_dir)
-
 from utils.download import bands_download
 from datetime import date
 
