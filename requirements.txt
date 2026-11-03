@@ -28,6 +28,8 @@ pillow
 pyogrio
 pyparsing
 pyproj
+psutil
+pystac-client
 python-dateutil
 python-dotenv
 pytz

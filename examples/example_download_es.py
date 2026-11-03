@@ -9,11 +9,18 @@ from utils.download import bands_download
 from datetime import date
 import requests
 from shapely.geometry import shape, Polygon
+import os
+from dotenv import load_dotenv
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
+def run():
+    return example_download_es()
 
 def example_download_es(bands=['red', 'green', 'blue', 'nir', 'pan']):
 
     # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com'
+    user = email_inpe
         
     # Polígono do local de busca
     # Localização: Espírito Santo (ES)

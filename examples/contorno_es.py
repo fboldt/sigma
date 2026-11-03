@@ -2,6 +2,9 @@ from shapely.geometry import shape
 import requests
 import json
 
+def run():
+    return contorno_es()
+
 def contorno_es(nome_saida="contorno_es.geojson"):
     # Polígono do local de busca
     # Localização: Espírito Santo (ES)

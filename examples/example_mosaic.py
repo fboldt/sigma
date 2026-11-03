@@ -6,7 +6,10 @@ project_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.append(project_dir)
 
 from utils.mosaic import mosaic_scenes
+from utils.example_inputs import require_files
 
+def run():
+    return example_mosaic()
 
 def example_mosaic():
     # A primeira cena define o CRS de referencia e a prioridade no merge.
@@ -22,6 +25,7 @@ def example_mosaic():
 
 
     output_file_path = "./images/MOSAICO_ES.tif"
+    require_files("example_mosaic", cenas)
     mosaic_scenes(cenas, output_file_path, reference_index=0)
 
 if __name__ == "__main__":

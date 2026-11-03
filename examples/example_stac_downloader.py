@@ -9,7 +9,7 @@ sys.path.append(project_dir)
 from utils.stac_downloader import buscar_itens_stac, baixar_asset
 
 
-if __name__ == "__main__":
+def run():
     url_bdc = "https://data.inpe.br/bdc/stac/v1/"
     colecao = "CB4A-WPM-PCA-FUSED-1"
 
@@ -46,3 +46,7 @@ if __name__ == "__main__":
         else:
             print(f"\nItem {item.id} não possui asset 'tci'.")
             print("Assets disponíveis:", list(item.assets.keys()))
+
+
+if __name__ == "__main__":
+    run()

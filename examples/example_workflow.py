@@ -16,12 +16,20 @@ import requests
 from shapely.geometry import shape, Polygon
 import os
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
+def run():
+    return workflow_mosaic()
+
 def workflow_mosaic():
 
     # 1. Parâmetros de busca
     # Download das bandas
     # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com' # E-mail cadastrado na plataforma do INPE
+    user = email_inpe
 
     # Coordenadas do local de busca
     # Localização: Grande Vitória, Brasil

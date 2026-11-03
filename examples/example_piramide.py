@@ -7,10 +7,15 @@ sys.path.append(project_dir)
 
 import os
 from utils.piramide import gerar_copia_com_piramides
+from utils.example_inputs import require_files
+
+def run():
+    return example_piramide()
 
 def example_piramide():
     # Caminho para a imagem original (sem pirâmides)
     caminho_imagem_original = './images/MOSAICO_ES.tif'  # Substitua pelo caminho correto da sua imagem 
+    require_files("example_piramide", [caminho_imagem_original])
 
     # Gerar a cópia com pirâmides
     caminho_imagem_com_piramides = gerar_copia_com_piramides(caminho_imagem_original) #pode adicionar os fatores de pirâmides como segundo argumento, ex: [2, 4, 8]

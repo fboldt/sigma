@@ -9,11 +9,17 @@ from utils.download import bands_download
 from utils.rgb import rgb_batch_composite
 from datetime import date
 import os
+from dotenv import load_dotenv
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
+def run():
+    return example_download_and_rgb()
 
 def example_download_and_rgb():
     # Download das bandas
     # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com'
+    user = email_inpe
 
     # Coordenadas do local de busca
     # Localização: Domingos Martins - ES, Brasil

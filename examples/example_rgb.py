@@ -7,6 +7,10 @@ sys.path.append(project_dir)
 
 import os
 from utils.rgb import rgb_composite
+from utils.example_inputs import require_files
+
+def run():
+    return example_rgb()
 
 def example_rgb():
     # Diretório contendo as bandas individuais
@@ -24,10 +28,18 @@ def example_rgb():
     blue_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND1.tif')     # Substitua pelo caminho correto da banda azul
     nir_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND4.tif')      # Banda NIR (opcional). Substitua pelo caminho correto da banda NIR
 
+    require_files("example_rgb", [red_band_path, green_band_path, blue_band_path])
+
     # 3. Chamada da função para compor a imagem RGB
     print(f"Iniciando composição RGB.")
 
-    rgb_composite(red_band_path, green_band_path, blue_band_path, output_file_path, nir_band_path)
+    rgb_composite(
+        red_band_path,
+        green_band_path,
+        blue_band_path,
+        output_file_path,
+        nir_band_path if os.path.isfile(nir_band_path) else None,
+    )
 
     print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
