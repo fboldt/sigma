@@ -1,1 +1,10 @@
 *.pyc
+*.venv
+.venv/
+venv/
+__pycache__/
+*.tif
+*.tif.aux.xml
+images/
+images_temp/
+.env
