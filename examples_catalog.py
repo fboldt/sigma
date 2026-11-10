@@ -21,8 +21,6 @@ from examples import (
     example_workflow,
     workflow_mosaic
 )
-from examples import example_pansharpening_tiles
-
 
 available_examples = {
     "python_version": python_version,  # exemplo sem parametros
