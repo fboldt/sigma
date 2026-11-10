@@ -11,6 +11,44 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+import sys
+
+def _corrigir_cbers4asat_py314():
+    """Compatibilidade com Python 3.14.
+
+    O decorador ignore_extras do cbers4asat usa self.__annotations__ dentro do
+    __init__, o que falha no 3.14. Aqui o __init__ dessas classes e' refeito
+    usando annotationlib. Em Python < 3.14 esta funcao nao faz nada.
+    """
+    if sys.version_info < (3, 14):
+        return
+
+    import annotationlib
+
+    for nome, modulo in list(sys.modules.items()):
+        if not nome.startswith("cbers4asat"):
+            continue
+        for cls in list(vars(modulo).values()):
+            if not isinstance(cls, type):
+                continue
+            init = cls.__dict__.get("__init__")
+            if getattr(init, "__name__", "") != "filter_extras" or not init.__closure__:
+                continue
+
+            original = init.__closure__[0].cell_contents
+            campos = set(
+                annotationlib.get_annotations(
+                    cls, format=annotationlib.Format.FORWARDREF
+                )
+            )
+
+            def novo_init(self, _original=original, _campos=campos, **kwargs):
+                _original(self, **{k: v for k, v in kwargs.items() if k in _campos})
+
+            cls.__init__ = novo_init
+
+
+_corrigir_cbers4asat_py314()
 
 # Tamanho de cada bloco gravado no disco durante a transferencia HTTP.
 DOWNLOAD_CHUNK_SIZE = 8 * 1024 * 1024

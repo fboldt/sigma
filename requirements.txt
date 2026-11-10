@@ -1,6 +1,6 @@
 affine
 attrs
-cbers4asat
+cbers4asat==0.10.0
 certifi
 charset-normalizer
 click
