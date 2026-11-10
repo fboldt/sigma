@@ -15,7 +15,8 @@ O trabalho está vinculado ao **IntegraCAR**, o maior projeto de extensão do If
 Antes de começar, você vai precisar ter instalado:
 
 - [Git](https://git-scm.com/)
-- [Python 3.10+](https://www.python.org/downloads/)
+- [Python 3.11+](https://www.python.org/downloads/)
+- Uma **conta cadastrada no catálogo de imagens do INPE** ([cadastro gratuito](https://www.dgi.inpe.br/catalogo/explore)), necessária para o download das cenas.
 
 ## Instalação e execução local
 
@@ -44,14 +45,20 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**4. Execute o projeto**
-```bash
-python run_example.py
+**4. Configure o seu e-mail do INPE**
+
+O download das imagens exige um usuário cadastrado no [catálogo de imagens do INPE](https://www.dgi.inpe.br/catalogo/explore). Antes de executar, 
+crie na raiz do projeto um arquivo de nome `.env` e atribua a uma variável de nome `EMAIL_INPE` o e-mail da sua conta no catálogo:
+
+```
+EMAIL_INPE=seu_email@exemplo.com  # E-mail cadastrado no catálogo de imagens do INPE
 ```
 
-Você também pode rodar qualquer um dos scripts prontos dentro da pasta `examples/` da mesma forma, bastando ajustar os parâmetros desejados antes de executar:
+Sem essa alteração, o download das cenas não funciona. O mesmo vale para os scripts da pasta `examples/` que fazem download.
+
+**5. Execute o projeto**
 ```bash
-python examples/nome_do_exemplo.py
+python run_example.py exemplo parâmetros_do_exemplo
 ```
 
 ## Estrutura do repositório

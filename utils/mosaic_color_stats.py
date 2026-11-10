@@ -133,8 +133,6 @@ def valid_overlap_mask(reference, source):
     if np.count_nonzero(land_mask) >= 500:
         return land_mask
 
-    # Fallback conservador: se a sobreposicao quase toda for mar/nuvem, nao usa agua,
-    # mas ainda permite alguma terra escura ou urbana para evitar perder cenas isoladas.
     reference_brightness = brightness(reference)
     source_brightness = brightness(source)
     reference_limits = safe_percentile(reference_brightness[mask], (5, 95))

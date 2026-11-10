@@ -7,3 +7,4 @@ __pycache__/
 *.tif.aux.xml
 images/
 images_temp/
+.env

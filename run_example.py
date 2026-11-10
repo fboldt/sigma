@@ -1,75 +1,16 @@
-from utils.search import search_products
-from utils.filter import products_filter
-from utils.download import bands_download
-from utils.rgb import rgb_batch_composite
-from utils.mosaic import mosaic_scenes
-from datetime import date
-import requests
-from shapely.geometry import shape, Polygon
+import argparse
+from examples_catalog import available_examples
 
-def workflow_mosaic():
-
-    # 1. Parâmetros de busca
-    # Usuário cadastrado na plataforma do INPE
-    user = 'email@email.com' # E-mail cadastrado na plataforma do INPE
-       
-    # Polígono do local de busca
-    # Localização: Espírito Santo (ES)
-    url = "https://servicodados.ibge.gov.br/api/v4/malhas/estados/32?formato=application/vnd.geo+json&qualidade=minima" # URL do Query Builder na API do IBGE
-    response = requests.get(url)
-    data = response.json()
-    polygon = shape(data['features'][0]['geometry'])
-   
-    # Especificações dos produtos a retornar
-    max_cloud = 10            # Cobertura de nuvens (max)
-    max_products =  100       # Número de cenas por Dataset (max)
-
-
-    # Intervalo para data da busca
-    initial_date = date(2023, 1, 1)      # ano, mês, dia
-    final_date = date(2026, 4, 29)       # ano, mês, dia
-
-    # Informações referentes ao download das bandas
-    bands = ['red', 'green', 'blue']    # Bandas para download
-    output_dir = './images'             # Diretório onde os arquivos serão salvos
-
-    # Dicionário com as informações de busca
-    params = {
-        'user': user,
-        'bbox': Polygon(polygon),
-        'max_cloud': max_cloud,
-        'max_products': max_products,
-        'initial_date': initial_date,
-        'final_date': final_date,
-        'bands': bands,
-        'output_dir': output_dir
-    }
-
-    # 2. Busca de produtos
-    print(f"Iniciando busca de produtos das bandas.")
-    products = search_products(params)
-
-    # 3. Filtragem de produtos encontrados
-    print(f"Iniciando filtragem de produtos retornados em um mesmo local.")
-    filter_products = products_filter(products)
-
-    # 4. Download dos produtos filrados
-    print(f"Iniciando download das bandas.")
-    all_bands_path = bands_download(params, filter_products)
-    print(f"Download finalizado! Arquivos salvos em: {output_dir}")
-
-    # 5. Composição RGB
-    # Nome completo do arquivo de saída
-    output_file_path = './images/TRUE_COLOR'
-    print(f"Iniciando composição RGB.")
-    files = rgb_batch_composite(all_bands_path, output_file_path)
-    print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")
-
-    # 6. Formação do mosaico
-    output_file_path='./images/NOVO_MOSAICO_SPECTRALMATCH'
-    print(f'Iniciando formação do mosaico.')
-    mosaic_scenes(files, output_file_path)
-    print(f'Processo concluído! Mosaico salvo em: {output_file_path}')
+def run_example(example_name, *args, **kwargs):    
+    if example_name in available_examples:
+        available_examples[example_name].run(*args, **kwargs)
+    else:
+        print(f"Exemplo '{example_name}' não encontrado.")
 
 if __name__ == "__main__":
-    workflow_mosaic()
+    parser = argparse.ArgumentParser(description="Executar exemplos")
+    parser.add_argument("example", choices=list(available_examples.keys()), help="Nome do exemplo a ser executado")
+    parser.add_argument("args", nargs="*", help="Argumentos adicionais para o exemplo")
+    args = parser.parse_args()
+    run_example(args.example, *args.args)
+    print()

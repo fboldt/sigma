@@ -1,12 +1,25 @@
+import sys
+from pathlib import Path
+
+# Sobe um nível para o diretório principal do projeto e adiciona ao path
+project_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(project_dir)
+
 from utils.download import bands_download
 from utils.rgb import rgb_batch_composite
 from datetime import date
 import os
+from dotenv import load_dotenv
+load_dotenv()
+email_inpe = os.getenv("EMAIL_INPE")
+
+def run():
+    return example_download_and_rgb()
 
 def example_download_and_rgb():
     # Download das bandas
     # Usuário cadastrado na plataforma do INPE
-    user = 'izabelly.cristine.ic@gmail.com'
+    user = email_inpe
 
     # Coordenadas do local de busca
     # Localização: Domingos Martins - ES, Brasil

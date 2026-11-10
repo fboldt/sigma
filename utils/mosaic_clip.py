@@ -3,9 +3,17 @@ import os
 import unicodedata
 import numpy as np
 import rasterio as rio
-from rasterio.mask import mask as raster_mask
+from rasterio.errors import WindowError
+from rasterio.features import bounds as features_bounds
+from rasterio.features import geometry_mask, geometry_window
 from rasterio.warp import transform_geom
-from utils.mosaic_geometry import NODATA_VALUE
+from rasterio.windows import Window
+from utils.mosaic_geometry import (
+    DEFAULT_WINDOW_SIZE,
+    NODATA_VALUE,
+    iter_windows,
+    tiled_gtiff_profile,
+)
 
 IBGE_STATE_GEOJSON_URL = (
     "https://servicodados.ibge.gov.br/api/v4/malhas/estados/{state_id}"
@@ -218,8 +226,45 @@ def resolve_clip_geometry(clip_geometry, clip_state=None):
     return clip_geometry
 
 
-# Função para recortar um raster por uma geometria, gravando nodata fora da área útil
-def clip_raster_to_geometry(input_path, output_path, geometry, geometry_crs="EPSG:4326", nodata=NODATA_VALUE,
+# Função para reprojetar as geometrias de recorte para o CRS do raster
+def geometries_to_crs(geometries, geometry_crs, target_crs):
+    if not geometry_crs or target_crs is None:
+        return list(geometries)
+    return [
+        transform_geom(geometry_crs, target_crs, item, precision=6)
+        for item in geometries
+    ]
+
+
+# Função para calcular o retângulo (esquerda, baixo, direita, cima) que envolve todas as geometrias
+def geometries_bounds(geometries):
+    boxes = [features_bounds(item) for item in geometries]
+    return (
+        min(box[0] for box in boxes),
+        min(box[1] for box in boxes),
+        max(box[2] for box in boxes),
+        max(box[3] for box in boxes),
+    )
+
+
+# Função para marcar (True) os pixels de uma janela que estão dentro das geometrias
+def inside_geometry_mask(geometries, out_shape, transform):
+    return geometry_mask(
+        geometries,
+        out_shape=out_shape,
+        transform=transform,
+        invert=True,
+    )
+
+
+# Função para recortar um raster por uma geometria, gravando nodata fora da área útil.
+def clip_raster_to_geometry(
+    input_path,
+    output_path,
+    geometry,
+    geometry_crs="EPSG:4326",
+    nodata=NODATA_VALUE,
+    window_size=DEFAULT_WINDOW_SIZE,
 ):
     geometries = extract_geojson_geometries(geometry)
     if not geometries:
@@ -229,44 +274,61 @@ def clip_raster_to_geometry(input_path, output_path, geometry, geometry_crs="EPS
         if src.crs is None:
             raise ValueError(f"A cena {input_path} nao possui CRS definido.")
 
-        if geometry_crs:
-            geometries = [
-                transform_geom(geometry_crs, src.crs, item, precision=6)
-                for item in geometries
-            ]
+        geometries = geometries_to_crs(geometries, geometry_crs, src.crs)
 
         try:
-            data, transform = raster_mask(
-                src,
-                geometries,
-                crop=True,
-                filled=True,
-                nodata=nodata,
-            )
-        except ValueError as exc:
+            crop = geometry_window(src, geometries)
+        except (ValueError, WindowError) as exc:
             raise ValueError(
                 f"A cena {input_path} nao intersecta a geometria de recorte."
             ) from exc
 
-        if not np.any(data > nodata):
+        crop = Window(
+            int(round(crop.col_off)),
+            int(round(crop.row_off)),
+            int(round(crop.width)),
+            int(round(crop.height)),
+        )
+        if crop.width <= 0 or crop.height <= 0:
             raise ValueError(
-                f"A cena {input_path} ficou sem pixels validos apos o recorte."
+                f"A cena {input_path} nao intersecta a geometria de recorte."
             )
 
-        profile = src.profile.copy()
+        profile = tiled_gtiff_profile(src.profile.copy())
         profile.update(
-            height=data.shape[1],
-            width=data.shape[2],
-            transform=transform,
+            height=crop.height,
+            width=crop.width,
+            transform=src.window_transform(crop),
             nodata=nodata,
-            compress="lzw",
-            tiled=True,
-            blockxsize=512,
-            blockysize=512,
-            BIGTIFF="YES",
         )
 
+        has_valid_pixels = False
         with rio.open(output_path, "w", **profile) as dst:
-            dst.write(data)
+            for window in iter_windows(
+                crop.width, crop.height, window_size, crop.col_off, crop.row_off
+            ):
+                data = src.read(window=window)
+                inside = inside_geometry_mask(
+                    geometries,
+                    (int(window.height), int(window.width)),
+                    src.window_transform(window),
+                )
+                data[:, ~inside] = nodata
+                has_valid_pixels = has_valid_pixels or bool(np.any(data > nodata))
+                dst.write(
+                    data,
+                    window=Window(
+                        window.col_off - crop.col_off,
+                        window.row_off - crop.row_off,
+                        window.width,
+                        window.height,
+                    ),
+                )
+
+    if not has_valid_pixels:
+        os.remove(output_path)
+        raise ValueError(
+            f"A cena {input_path} ficou sem pixels validos apos o recorte."
+        )
 
     return output_path
