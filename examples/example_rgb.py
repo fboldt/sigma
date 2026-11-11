@@ -9,12 +9,12 @@ import os
 from utils.rgb import rgb_composite
 from utils.example_inputs import require_files
 
-def run():
-    return example_rgb()
+def run(images_dir):
+    return example_rgb(images_dir)
 
-def example_rgb():
+def example_rgb(images_dir):
     # Diretório contendo as bandas individuais
-    input_path = './images/CBERS4A_WPM19513820250609ETC2' 
+    input_path = Path(images_dir)
 
     # Diretório e nome do arquivo de saída para a imagem composta
     output_dir = input_path  # Diretório de saída (mesmo que o diretório de entrada)
@@ -23,11 +23,14 @@ def example_rgb():
     output_file_path = os.path.join(output_dir, output_filename)
 
     # Caminhos completos para as bandas vermelha, verde e azul
-    red_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND3.tif')      # Substitua pelo caminho correto da banda vermelha
-    green_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND2.tif')    # Substitua pelo caminho correto da banda verde
-    blue_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND1.tif')     # Substitua pelo caminho correto da banda azul
-    nir_band_path = os.path.join(input_path, 'CBERS_4A_WPM_20250609_195_138_L4_BAND4.tif')      # Banda NIR (opcional). Substitua pelo caminho correto da banda NIR
+    red_band_path = next(input_path.glob("*BAND3.tif"))
+    green_band_path = red_band_path.with_name(red_band_path.name.replace("BAND3.tif", "BAND2.tif"))
+    blue_band_path = red_band_path.with_name(red_band_path.name.replace("BAND3.tif", "BAND1.tif"))
+    nir_band_path = red_band_path.with_name(red_band_path.name.replace("BAND3.tif", "BAND4.tif"))   # Banda NIR (opcional). Substitua pelo caminho correto da banda NIR
 
+    if not (red_band_path.exists() and green_band_path.exists() and blue_band_path.exists() or nir_band_path.exists()):
+        raise FileNotFoundError("Uma ou mais bandas necessárias não foram encontradas no diretório especificado.")
+    
     require_files("example_rgb", [red_band_path, green_band_path, blue_band_path])
 
     # 3. Chamada da função para compor a imagem RGB

@@ -43,7 +43,7 @@ for nome_arquivo in os.listdir(pasta_imagens):
         print(f"Nuvens: {resultado['percentual_nuvem']:.2f}%")
         if resultado["percentual_nuvem"] <= 3:
             destino = os.path.join(
-                "C:/Users/Julia Almeida/sigma/teste_imagens",
+                "./sigma/teste_imagens",
                 os.path.basename(caminho)
             )
             shutil.copy(caminho, destino)
