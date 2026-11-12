@@ -20,11 +20,11 @@ def example_download():
         
     # Coordenadas do local de busca
     # Localização: Domingos Martins - ES, Brasil
-    x_min = -41.3000000     # Oeste
-    y_min = -21.0000000     # Sul
-    x_max = -40.9500000     # Leste
-    y_max = -20.7000000     # Norte
-    
+    x_min = -40.8940507     # Oeste
+    y_min = -20.5950702     # Sul
+    x_max = -40.4260507     # Leste
+    y_max = -20.1270702     # Norte
+
     # Usuário cadastrado na plataforma do INPE
     user = email_inpe
 
