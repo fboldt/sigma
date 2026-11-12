@@ -12,14 +12,14 @@ from utils.example_inputs import require_files
 def run(images_dir=None):
     if images_dir is None:
         print("Informe a pasta com as imagens.")
-        print(r"Exemplo: python run_example.py example_rgb .\images\NOME_DA_CENA")
+        print(r"Exemplo: python run_example.py example_rgb ./images/NOME_DA_CENA")
         return
 
     try:
         return example_rgb(images_dir)
     except FileNotFoundError as erro:
         print(erro)
-        print(r"Exemplo: python run_example.py example_rgb .\images\NOME_DA_CENA")
+        print(r"Exemplo: python run_example.py example_rgb ./images/NOME_DA_CENA")
 
 def example_rgb(images_dir):
     # Diretório contendo as bandas individuais
@@ -55,5 +55,3 @@ def example_rgb(images_dir):
 
     print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
-if __name__ == "__main__":
-    example_rgb()
