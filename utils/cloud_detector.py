@@ -265,7 +265,7 @@ def calcular_nuvens_tci(
             area_total_km2 = total_pixels_validos * area_pixel_m2 / 1_000_000
             area_nuvem_km2 = total_pixels_nuvem * area_pixel_m2 / 1_000_000
             '''if area_nuvem_km2 <= 5:
-                with open("C:/Users/Julia Almeida/sigma/teste_imagens/alerta_nuvens.txt", "w") as f_alerta:
+                with open("./sigma/teste_imagens/alerta_nuvens.txt", "w") as f_alerta:
                     f_alerta.write(
                         caminho_imagem 
                     )'''
