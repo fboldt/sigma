@@ -3,7 +3,7 @@ import requests
 import json
 
 def run():
-    return contorno_es()
+    return contorno_es("contorno_es.geojson")
 
 def contorno_es(nome_saida="contorno_es.geojson"):
     # Polígono do local de busca

@@ -21,23 +21,23 @@ def run(scene_directory=None):
     """Gera PANSHARP usando a PAN da cena e o TRUE_COLOR ja' composto.
 
     Exemplo:
-        python run_example.py exemple_pansharpening_tiles ./images/CENA
+        python run_example.py example_pansharpening_tiles ./images/CENA
     """
     if scene_directory is None:
         raise ValueError(
             "Informe a pasta da cena. Exemplo:\n"
-            "python run_example.py exemple_pansharpening_tiles "
+            "python run_example.py example_pansharpening_tiles "
             "./images/CBERS4A_WPM19513820250609ETC2"
         )
 
     scene_dir = Path(scene_directory).expanduser()
-    require_directory("exemple_pansharpening_tiles", scene_dir)
+    require_directory("example_pansharpening_tiles", scene_dir)
 
     scene_id = scene_dir.name
     pan_path = _pan_path(scene_dir)
     rgb_path = PROJECT_ROOT / "images" / f"TRUE_COLOR_{scene_id}.tif"
     require_files(
-        "exemple_pansharpening_tiles",
+        "example_pansharpening_tiles",
         [rgb_path, pan_path],
     )
 

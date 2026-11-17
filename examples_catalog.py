@@ -18,8 +18,7 @@ from examples import (
     example_piramide,
     example_rgb,
     example_stac_downloader,
-    example_workflow,
-    workflow_mosaic
+    example_workflow
 )
 
 available_examples = {
@@ -37,5 +36,4 @@ available_examples = {
     "example_stac_downloader": example_stac_downloader,
     "example_pansharpening_tiles": example_pansharpening_tiles,
     "example_workflow": example_workflow,
-    "workflow_mosaic": workflow_mosaic,
 }

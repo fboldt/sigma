@@ -1,10 +1,3 @@
-import sys
-from pathlib import Path
-
-# Sobe um nível para o diretório principal do projeto e adiciona ao path
-project_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(project_dir)
-
 from utils.download import bands_download
 from datetime import date
 
@@ -33,6 +26,7 @@ def example_download():
 
     # Especificações dos produtos a retornar
     max_cloud = 10          # Cobertura de nuvens (max)
+    
     # Um unico produto mantem este exemplo curto. O tempo exato ainda depende
     # da disponibilidade do servidor do INPE e da rede.
     max_products = 1        # Numero maximo de cenas
@@ -42,7 +36,7 @@ def example_download():
     final_date = date(2025, 7, 12)      # ano, mês, dia
 
     # Bandas para download
-    bands = ['blue', 'green', 'red', 'nir', 'pan']  # Bandas completas de uma cena
+    bands = ['blue', 'green', 'red']  # Bandas completas de uma cena
 
     # Diretório para download das bandas
     output_dir = './images'

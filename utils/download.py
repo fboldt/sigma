@@ -1,5 +1,4 @@
 from cbers4asat import Cbers4aAPI
-from cbers4asat.cbers4a import ItemCollection
 from datetime import date
 import os
 import glob
@@ -11,44 +10,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-import sys
-
-def _corrigir_cbers4asat_py314():
-    """Compatibilidade com Python 3.14.
-
-    O decorador ignore_extras do cbers4asat usa self.__annotations__ dentro do
-    __init__, o que falha no 3.14. Aqui o __init__ dessas classes e' refeito
-    usando annotationlib. Em Python < 3.14 esta funcao nao faz nada.
-    """
-    if sys.version_info < (3, 14):
-        return
-
-    import annotationlib
-
-    for nome, modulo in list(sys.modules.items()):
-        if not nome.startswith("cbers4asat"):
-            continue
-        for cls in list(vars(modulo).values()):
-            if not isinstance(cls, type):
-                continue
-            init = cls.__dict__.get("__init__")
-            if getattr(init, "__name__", "") != "filter_extras" or not init.__closure__:
-                continue
-
-            original = init.__closure__[0].cell_contents
-            campos = set(
-                annotationlib.get_annotations(
-                    cls, format=annotationlib.Format.FORWARDREF
-                )
-            )
-
-            def novo_init(self, _original=original, _campos=campos, **kwargs):
-                _original(self, **{k: v for k, v in kwargs.items() if k in _campos})
-
-            cls.__init__ = novo_init
-
-
-_corrigir_cbers4asat_py314()
 
 # Tamanho de cada bloco gravado no disco durante a transferencia HTTP.
 DOWNLOAD_CHUNK_SIZE = 8 * 1024 * 1024
@@ -56,6 +17,8 @@ DOWNLOAD_CHUNK_SIZE = 8 * 1024 * 1024
 RANGE_DOWNLOAD_THRESHOLD = 256 * 1024 * 1024
 # Numero de conexoes usadas para montar um arquivo grande por intervalos.
 RANGE_DOWNLOAD_WORKERS = 4
+# Endpoint do INPE para buscar uma cena por ID (o mesmo que o cbers4asat usa).
+STAC_ITEM_URL = "https://www.dgi.inpe.br/lgi-stac/collections"
 
 
 class RangeDownloadError(RuntimeError):
@@ -191,27 +154,37 @@ def _download_large_asset(url, email, partial_path, size):
             future.result()
 
 
+def _band_urls(feature, bands):
+    """Busca a cena por ID no catalogo do INPE e devolve {banda: url}."""
+    with _make_session() as session:
+        resposta = session.get(
+            f"{STAC_ITEM_URL}/{feature['collection']}/items/{feature['id']}",
+            timeout=(30, 120),
+        )
+        resposta.raise_for_status()
+    assets = resposta.json().get("assets", {})
+
+    urls = {}
+    for band in bands:
+        asset = assets.get(band)
+        if not asset or "href" not in asset:
+            raise ValueError(
+                f"Banda {band} nao existe na cena {feature['id']}. "
+                f"Bandas disponiveis: {list(assets)}"
+            )
+        urls[band] = asset["href"]
+    return urls
+
+
 def _download_bands_parallel(products, bands, output_dir, email, workers):
-    """Resolve os URLs das bandas e inicia todos os downloads em paralelo.
-
-    ItemCollection e get_features_assets pertencem ao cbers4asat e sao usados
-    somente para consultar o catalogo INPE. A transferencia dos arquivos e'
-    feita pelas funcoes _download_asset deste modulo, usando requests.
-    """
-    products_with_assets = ItemCollection(**products)
-    # A busca por area traz somente a miniatura. Esta chamada busca os assets
-    # (URLs das bandas) de cada produto, como a biblioteca faz internamente.
-    products_with_assets.get_features_assets()
-
+    """Resolve os URLs das bandas e inicia todos os downloads em paralelo."""
     tasks = []
-    for item in products_with_assets:
-        scene_dir = Path(output_dir) / item.id
-        for band in bands:
-            url = item.band_url(band)
+    for feature in products["features"]:
+        scene_dir = Path(output_dir) / feature["id"]
+        for band, url in _band_urls(feature, bands).items():
             tasks.append((band, url, scene_dir / Path(url).name))
 
     _run_download_tasks(tasks, email, workers)
-
 
 def _run_download_tasks(tasks, email, workers):
     """Executa tarefas de bandas independentes antes de aguardar resultados."""
