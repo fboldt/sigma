@@ -18,10 +18,12 @@ from examples import (
     example_piramide,
     example_rgb,
     example_stac_downloader,
-    example_workflow
+    example_workflow,
+    list_cities
 )
 
 available_examples = {
+    "list_cities": list_cities,  
     "python_version": python_version,  # exemplo sem parametros
     "echo": echo,  # exemplo com um parametro
     "sum": sum,  # exemplo com dois parametros
