@@ -5,8 +5,8 @@ Central catalog of available example modules.
 Each entry maps a string key to its corresponding example implementation.
 """
 from examples import (
+    download_scene,
     echo,
-    example_download,
     example_download_and_rgb,
     example_pansharpening_tiles,
     python_version,
@@ -25,7 +25,7 @@ available_examples = {
     "python_version": python_version,  # exemplo sem parametros
     "echo": echo,  # exemplo com um parametro
     "sum": sum,  # exemplo com dois parametros
-    "example_download": example_download,
+    "download_scene": download_scene,
     "contorno_es": contorno_es,
     "example_download_and_rgb": example_download_and_rgb,
     "example_download_and_rgb_es": example_download_and_rgb_es,
