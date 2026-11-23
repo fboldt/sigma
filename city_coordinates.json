@@ -1,9 +1,548 @@
 {
     "DMA": {
         "city": "Domingos Martins",
-        "west": -40.8940507,
-        "south": -20.5950702,
-        "east": -40.4260507,
-        "north": -20.1270702
+        "west": -41.1368,
+        "south": -20.4844,
+        "east": -40.5338,
+        "north": -20.1525
+    },
+    "ACL": {
+        "city": "Afonso Cláudio",
+        "west": -41.2758,
+        "south": -20.2877,
+        "east": -40.9459,
+        "north": -19.8902
+    },
+    "ALE": {
+        "city": "Alegre",
+        "west": -41.6399,
+        "south": -20.9114,
+        "east": -41.3722,
+        "north": -20.5447
+    },
+    "ACH": {
+        "city": "Alfredo Chaves",
+        "west": -40.9951,
+        "south": -20.7055,
+        "east": -40.6561,
+        "north": -20.43
+    },
+    "ARN": {
+        "city": "Alto Rio Novo",
+        "west": -41.0718,
+        "south": -19.1232,
+        "east": -40.8951,
+        "north": -18.9408
+    },
+    "ANC": {
+        "city": "Anchieta",
+        "west": -40.8436,
+        "south": -20.8412,
+        "east": -40.5709,
+        "north": -20.5459
+    },
+    "API": {
+        "city": "Apiacá",
+        "west": -41.6455,
+        "south": -21.1837,
+        "east": -41.494,
+        "north": -20.957
+    },
+    "ARA": {
+        "city": "Aracruz",
+        "west": -40.3538,
+        "south": -20.0121,
+        "east": -39.9117,
+        "north": -19.5511
+    },
+    "AVI": {
+        "city": "Atílio Vivácqua",
+        "west": -41.286,
+        "south": -21.069,
+        "east": -41.0929,
+        "north": -20.8686
+    },
+    "BGU": {
+        "city": "Baixo Guandu",
+        "west": -41.1911,
+        "south": -19.8057,
+        "east": -40.8185,
+        "north": -19.2227
+    },
+    "BSF": {
+        "city": "Barra de São Francisco",
+        "west": -41.0254,
+        "south": -18.9015,
+        "east": -40.6521,
+        "north": -18.4244
+    },
+    "BES": {
+        "city": "Boa Esperança",
+        "west": -40.487,
+        "south": -18.5862,
+        "east": -40.1246,
+        "north": -18.3613
+    },
+    "BJN": {
+        "city": "Bom Jesus do Norte",
+        "west": -41.7206,
+        "south": -21.1434,
+        "east": -41.5704,
+        "north": -21.0065
+    },
+    "BRE": {
+        "city": "Brejetuba",
+        "west": -41.4161,
+        "south": -20.2778,
+        "east": -41.2234,
+        "north": -19.9365
+    },
+    "CIT": {
+        "city": "Cachoeiro de Itapemirim",
+        "west": -41.389,
+        "south": -20.9534,
+        "east": -41.0062,
+        "north": -20.606
+    },
+    "CAR": {
+        "city": "Cariacica",
+        "west": -40.6052,
+        "south": -20.3997,
+        "east": -40.3289,
+        "north": -20.2149
+    },
+    "CAS": {
+        "city": "Castelo",
+        "west": -41.4147,
+        "south": -20.6724,
+        "east": -41.0176,
+        "north": -20.4028
+    },
+    "COL": {
+        "city": "Colatina",
+        "west": -40.8835,
+        "south": -19.7156,
+        "east": -40.3695,
+        "north": -19.2286
+    },
+    "CBA": {
+        "city": "Conceição da Barra",
+        "west": -40.0299,
+        "south": -18.7216,
+        "east": -39.666,
+        "north": -18.179
+    },
+    "CCA": {
+        "city": "Conceição do Castelo",
+        "west": -41.3618,
+        "south": -20.5215,
+        "east": -41.1581,
+        "north": -20.2294
+    },
+    "DSL": {
+        "city": "Divino de São Lourenço",
+        "west": -41.8022,
+        "south": -20.6719,
+        "east": -41.6526,
+        "north": -20.5018
+    },
+    "DRP": {
+        "city": "Dores do Rio Preto",
+        "west": -41.8798,
+        "south": -20.7773,
+        "east": -41.7508,
+        "north": -20.4766
+    },
+    "ECO": {
+        "city": "Ecoporanga",
+        "west": -41.1625,
+        "south": -18.5174,
+        "east": -40.5154,
+        "north": -17.952
+    },
+    "FUN": {
+        "city": "Fundão",
+        "west": -40.5051,
+        "south": -20.0555,
+        "east": -40.1545,
+        "north": -19.8512
+    },
+    "GLI": {
+        "city": "Governador Lindenberg",
+        "west": -40.6201,
+        "south": -19.3245,
+        "east": -40.3649,
+        "north": -19.0793
+    },
+    "GUA": {
+        "city": "Guarapari",
+        "west": -40.7022,
+        "south": -20.7652,
+        "east": -40.3727,
+        "north": -20.4593
+    },
+    "GUAC": {
+        "city": "Guaçuí",
+        "west": -41.8497,
+        "south": -20.9433,
+        "east": -41.5944,
+        "north": -20.6366
+    },
+    "IBA": {
+        "city": "Ibatiba",
+        "west": -41.69,
+        "south": -20.3377,
+        "east": -41.4093,
+        "north": -20.207
+    },
+    "IBI": {
+        "city": "Ibiraçu",
+        "west": -40.5142,
+        "south": -19.9126,
+        "east": -40.346,
+        "north": -19.746
+    },
+    "IBIT": {
+        "city": "Ibitirama",
+        "west": -41.804,
+        "south": -20.6645,
+        "east": -41.5931,
+        "north": -20.3723
+    },
+    "ICO": {
+        "city": "Iconha",
+        "west": -40.9473,
+        "south": -20.856,
+        "east": -40.7708,
+        "north": -20.6704
+    },
+    "IRU": {
+        "city": "Irupi",
+        "west": -41.7972,
+        "south": -20.4145,
+        "east": -41.5392,
+        "north": -20.2582
+    },
+    "ITA": {
+        "city": "Itaguaçu",
+        "west": -40.9969,
+        "south": -19.8915,
+        "east": -40.7561,
+        "north": -19.5595
+    },
+    "ITAP": {
+        "city": "Itapemirim",
+        "west": -41.1199,
+        "south": -21.1107,
+        "east": -40.7517,
+        "north": -20.8657
+    },
+    "ITAR": {
+        "city": "Itarana",
+        "west": -40.9705,
+        "south": -20.0745,
+        "east": -40.7742,
+        "north": -19.8346
+    },
+    "IUN": {
+        "city": "Iúna",
+        "west": -41.8595,
+        "south": -20.504,
+        "east": -41.4614,
+        "north": -20.2069
+    },
+    "JAG": {
+        "city": "Jaguaré",
+        "west": -40.2077,
+        "south": -19.1609,
+        "east": -39.7411,
+        "north": -18.7746
+    },
+    "JMO": {
+        "city": "Jerônimo Monteiro",
+        "west": -41.4637,
+        "south": -20.9086,
+        "east": -41.3199,
+        "north": -20.6841
+    },
+    "JNE": {
+        "city": "João Neiva",
+        "west": -40.5329,
+        "south": -19.8313,
+        "east": -40.3438,
+        "north": -19.6224
+    },
+    "LTE": {
+        "city": "Laranja da Terra",
+        "west": -41.187,
+        "south": -19.9879,
+        "east": -40.9248,
+        "north": -19.7594
+    },
+    "LIN": {
+        "city": "Linhares",
+        "west": -40.5306,
+        "south": -19.687,
+        "east": -39.6891,
+        "north": -18.995
+    },
+    "MAN": {
+        "city": "Mantenópolis",
+        "west": -41.2455,
+        "south": -18.9477,
+        "east": -40.8979,
+        "north": -18.796
+    },
+    "MAR": {
+        "city": "Marataízes",
+        "west": -40.9505,
+        "south": -21.1902,
+        "east": -40.8007,
+        "north": -20.9958
+    },
+    "MFL": {
+        "city": "Marechal Floriano",
+        "west": -40.9124,
+        "south": -20.5231,
+        "east": -40.6221,
+        "north": -20.3432
+    },
+    "MARI": {
+        "city": "Marilândia",
+        "west": -40.6415,
+        "south": -19.5426,
+        "east": -40.3736,
+        "north": -19.3106
+    },
+    "MSU": {
+        "city": "Mimoso do Sul",
+        "west": -41.5873,
+        "south": -21.2486,
+        "east": -41.1371,
+        "north": -20.8829
+    },
+    "MON": {
+        "city": "Montanha",
+        "west": -40.4473,
+        "south": -18.3203,
+        "east": -40.0875,
+        "north": -17.9229
+    },
+    "MUC": {
+        "city": "Mucurici",
+        "west": -40.662,
+        "south": -18.1422,
+        "east": -40.3684,
+        "north": -17.8919
+    },
+    "MFR": {
+        "city": "Muniz Freire",
+        "west": -41.6048,
+        "south": -20.6075,
+        "east": -41.3105,
+        "north": -20.1981
+    },
+    "MUQ": {
+        "city": "Muqui",
+        "west": -41.4723,
+        "south": -21.0256,
+        "east": -41.2215,
+        "north": -20.8399
+    },
+    "NVE": {
+        "city": "Nova Venécia",
+        "west": -40.7762,
+        "south": -18.9545,
+        "east": -40.2843,
+        "north": -18.3595
+    },
+    "PAN": {
+        "city": "Pancas",
+        "west": -40.9643,
+        "south": -19.3569,
+        "east": -40.6551,
+        "north": -18.9404
+    },
+    "PCA": {
+        "city": "Pedro Canário",
+        "west": -40.2204,
+        "south": -18.3149,
+        "east": -39.8999,
+        "north": -17.9816
+    },
+    "PIN": {
+        "city": "Pinheiros",
+        "west": -40.4863,
+        "south": -18.4968,
+        "east": -39.9368,
+        "north": -18.2473
+    },
+    "PIU": {
+        "city": "Piúma",
+        "west": -40.828,
+        "south": -20.8908,
+        "east": -40.7007,
+        "north": -20.7861
+    },
+    "PBE": {
+        "city": "Ponto Belo",
+        "west": -40.6188,
+        "south": -18.4133,
+        "east": -40.4199,
+        "north": -18.1048
+    },
+    "PKE": {
+        "city": "Presidente Kennedy",
+        "west": -41.2339,
+        "south": -21.3017,
+        "east": -40.9261,
+        "north": -21.0003
+    },
+    "RBA": {
+        "city": "Rio Bananal",
+        "west": -40.4352,
+        "south": -19.3761,
+        "east": -40.1814,
+        "north": -19.0663
+    },
+    "RNS": {
+        "city": "Rio Novo do Sul",
+        "west": -40.9959,
+        "south": -20.893,
+        "east": -40.828,
+        "north": -20.6754
+    },
+    "SLE": {
+        "city": "Santa Leopoldina",
+        "west": -40.7521,
+        "south": -20.2713,
+        "east": -40.3733,
+        "north": -19.9449
+    },
+    "SMJ": {
+        "city": "Santa Maria de Jetibá",
+        "west": -41.0363,
+        "south": -20.2274,
+        "east": -40.5953,
+        "north": -19.9416
+    },
+    "STE": {
+        "city": "Santa Teresa",
+        "west": -40.8283,
+        "south": -20.0022,
+        "east": -40.4525,
+        "north": -19.734
+    },
+    "SER": {
+        "city": "Serra",
+        "west": -40.4362,
+        "south": -20.2606,
+        "east": -40.172,
+        "north": -20.0144
+    },
+    "SOO": {
+        "city": "Sooretama",
+        "west": -40.2883,
+        "south": -19.2348,
+        "east": -39.9884,
+        "north": -18.9066
+    },
+    "SDN": {
+        "city": "São Domingos do Norte",
+        "west": -40.6913,
+        "south": -19.2803,
+        "east": -40.3704,
+        "north": -19.043
+    },
+    "SGP": {
+        "city": "São Gabriel da Palha",
+        "west": -40.6562,
+        "south": -19.0602,
+        "east": -40.373,
+        "north": -18.8477
+    },
+    "SJC": {
+        "city": "São José do Calçado",
+        "west": -41.7362,
+        "south": -21.1072,
+        "east": -41.5715,
+        "north": -20.8442
+    },
+    "SMA": {
+        "city": "São Mateus",
+        "west": -40.4056,
+        "south": -19.149,
+        "east": -39.7193,
+        "north": -18.4441
+    },
+    "SRC": {
+        "city": "São Roque do Canaã",
+        "west": -40.7818,
+        "south": -19.8311,
+        "east": -40.5182,
+        "north": -19.6226
+    },
+    "VAL": {
+        "city": "Vargem Alta",
+        "west": -41.1067,
+        "south": -20.8695,
+        "east": -40.9093,
+        "north": -20.4259
+    },
+    "VNI": {
+        "city": "Venda Nova do Imigrante",
+        "west": -41.2195,
+        "south": -20.4618,
+        "east": -41.0456,
+        "north": -20.2813
+    },
+    "VIA": {
+        "city": "Viana",
+        "west": -40.6324,
+        "south": -20.5052,
+        "east": -40.3703,
+        "north": -20.2789
+    },
+    "VPA": {
+        "city": "Vila Pavão",
+        "west": -40.8052,
+        "south": -18.7279,
+        "east": -40.4833,
+        "north": -18.4868
+    },
+    "VVA": {
+        "city": "Vila Valério",
+        "west": -40.4645,
+        "south": -19.0858,
+        "east": -40.2048,
+        "north": -18.8368
+    },
+    "VVE": {
+        "city": "Vila Velha",
+        "west": -40.4842,
+        "south": -20.5355,
+        "east": -40.2668,
+        "north": -20.32
+    },
+    "VIX": {
+        "city": "Vitória",
+        "west": -40.3623,
+        "south": -20.5279,
+        "east": -28.8476,
+        "north": -20.2292
+    },
+    "ADN": {
+        "city": "Água Doce do Norte",
+        "west": -41.1821,
+        "south": -18.6931,
+        "east": -40.8989,
+        "north": -18.3431
+    },
+    "ABR": {
+        "city": "Águia Branca",
+        "west": -40.906,
+        "south": -19.1499,
+        "east": -40.5561,
+        "north": -18.8415
     }
 }
