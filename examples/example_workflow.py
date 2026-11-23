@@ -70,7 +70,7 @@ def workflow_mosaic():
 
     # 5. Composição RGB
     # Nome completo do arquivo de saída
-    output_file_path = './images/TRUE_COLOR'
+    output_file_path = './images'
     print(f"Iniciando composição RGB.")
     files = rgb_batch_composite(all_bands_path, output_file_path)
     print(f"Composição finalizada! Arquivos salvos em: {output_file_path}")

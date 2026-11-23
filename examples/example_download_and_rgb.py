@@ -66,7 +66,7 @@ def example_download_and_rgb():
 
     # Composição RGB
     # Nome completo do arquivo de saída
-    output_file_path = './images/TRUE_COLOR' 
+    output_file_path = './images'
 
     # Chamada da função para compor a imagem RGB
     print(f"Iniciando composição RGB.")

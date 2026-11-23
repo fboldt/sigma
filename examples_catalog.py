@@ -10,8 +10,8 @@ from examples import (
     example_download_and_rgb,
     example_pansharpening_tiles,
     python_version,
+    state_outline,
     sum,
-    contorno_es,
     example_download_and_rgb_es,
     example_download_es,
     example_mosaic,
@@ -28,7 +28,7 @@ available_examples = {
     "echo": echo,  # exemplo com um parametro
     "sum": sum,  # exemplo com dois parametros
     "download_scene": download_scene,
-    "contorno_es": contorno_es,
+    "state_outline": state_outline,
     "example_download_and_rgb": example_download_and_rgb,
     "example_download_and_rgb_es": example_download_and_rgb_es,
     "example_download_es": example_download_es,

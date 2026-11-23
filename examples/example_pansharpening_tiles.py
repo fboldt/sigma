@@ -35,7 +35,7 @@ def run(scene_directory=None):
 
     scene_id = scene_dir.name
     pan_path = _pan_path(scene_dir)
-    rgb_path = PROJECT_ROOT / "images" / f"TRUE_COLOR_{scene_id}.tif"
+    rgb_path = scene_dir / f"TRUE_COLOR_{scene_id}.tif"
     require_files(
         "example_pansharpening_tiles",
         [rgb_path, pan_path],

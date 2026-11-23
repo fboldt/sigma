@@ -21,6 +21,19 @@ def baixar_asset(url_asset, pasta_destino='imagens_cbers4a', retries=5):
     nome_arquivo = os.path.basename(urlparse(url_asset).path)
     caminho_salvar = os.path.join(pasta_destino, nome_arquivo)
 
+    if os.path.isfile(caminho_salvar):
+        try:
+            resposta = requests.head(url_asset, allow_redirects=True, timeout=30)
+            resposta.raise_for_status()
+            tamanho_remoto = resposta.headers.get("content-length")
+            if tamanho_remoto is not None and os.path.getsize(caminho_salvar) == int(tamanho_remoto):
+                print(f"Cena ja baixada, download ignorado: {nome_arquivo}")
+                return caminho_salvar
+        except requests.exceptions.RequestException:
+            # Se a verificacao remota falhar, preserva o comportamento de
+            # retomar o download existente na tentativa normal abaixo.
+            pass
+
     for tentativa in range(retries):
         try:
             tamanho_local = os.path.getsize(caminho_salvar) if os.path.exists(caminho_salvar) else 0
