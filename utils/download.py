@@ -25,6 +25,19 @@ class RangeDownloadError(RuntimeError):
     """O servidor recusou uma requisicao HTTP parcial."""
 
 
+def require_inpe_email(email):
+    """Valida o e-mail exigido pelo INPE antes de iniciar um download."""
+    if isinstance(email, str) and email.strip():
+        return email.strip()
+
+    raise ValueError(
+        "Nao foi possivel iniciar o download porque EMAIL_INPE nao esta preenchido.\n\n"
+        "Crie ou edite o arquivo .env na raiz do projeto e informe:\n"
+        "EMAIL_INPE=seu_email_cadastrado_no_INPE\n\n"
+        "Use um e-mail cadastrado no catalogo do INPE e execute o exemplo novamente."
+    )
+
+
 def _make_session():
     """Cria uma sessao HTTP com tentativas automaticas para erros temporarios."""
     retry_policy = Retry(
@@ -181,10 +194,22 @@ def _download_bands_parallel(products, bands, output_dir, email, workers):
     tasks = []
     for feature in products["features"]:
         scene_dir = Path(output_dir) / feature["id"]
-        for band, url in _band_urls(feature, bands).items():
-            tasks.append((band, url, scene_dir / Path(url).name))
+        assets = _band_urls(feature, bands)
+        scene_tasks = [
+            (band, url, scene_dir / Path(url).name)
+            for band, url in assets.items()
+        ]
+        if all(path.is_file() for _, _, path in scene_tasks):
+            print(f"Cena ja baixada, download ignorado: {feature['id']}")
+            continue
 
-    _run_download_tasks(tasks, email, workers)
+        missing = [task for task in scene_tasks if not task[2].is_file()]
+        if len(missing) != len(scene_tasks):
+            print(f"Cena parcialmente baixada; baixando bandas ausentes: {feature['id']}")
+        tasks.extend(missing)
+
+    if tasks:
+        _run_download_tasks(tasks, email, workers)
 
 def _run_download_tasks(tasks, email, workers):
     """Executa tarefas de bandas independentes antes de aguardar resultados."""
@@ -207,8 +232,10 @@ def bands_download(params, products=None):
     assets. Esta funcao nao chama api.download(), pois o modulo implementa a
     transferencia HTTP concorrente em _download_bands_parallel.
     """
+    email = require_inpe_email(params.get('user'))
+
     # Instanciando o objeto com o usuario cadastrado na plataforma.
-    api = Cbers4aAPI(params['user'])
+    api = Cbers4aAPI(email)
     os.makedirs(params['output_dir'], exist_ok=True)
 
     if products == None:
@@ -231,7 +258,7 @@ def bands_download(params, products=None):
         products,
         bands,
         params['output_dir'],
-        params['user'],
+        email,
         max(1, workers),
     )
     
