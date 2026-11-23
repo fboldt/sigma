@@ -50,16 +50,15 @@ def rgb_composite(red_band, green_band, blue_band, output_file_path, nir_band=No
 def rgb_batch_composite(bands_path, output_file_path):
     all_rgb_paths = []
 
-     # Extrai o diretório e o nome base
-    output_dir = os.path.dirname(output_file_path)
-    base_filename = os.path.basename(output_file_path)
-
     for scene in bands_path:
         scene_id = scene.get('id')
+        if not scene_id:
+            raise ValueError("Cada cena precisa informar o campo 'id' para gerar a composicao RGB.")
 
-        # Nome do arquivo com a especificação referente à cena  
-        output_filename = f"{base_filename}_{scene_id}.tif" 
-        output_path = os.path.join(output_dir, output_filename)
+        # A composicao acompanha as bandas da propria cena. Assim o arquivo
+        # nao se mistura aos produtos de outras cenas em ./images.
+        scene_dir = os.path.dirname(scene['red'])
+        output_path = os.path.join(scene_dir, f"TRUE_COLOR_{scene_id}.tif")
 
         # Criação da composição RGB (usa a banda NIR automaticamente, se ela tiver sido baixada)
         rgb_composite(red_band=scene['red'],

@@ -27,7 +27,7 @@ def example_rgb(images_dir):
 
     # Diretório e nome do arquivo de saída para a imagem composta
     output_dir = input_path  # Diretório de saída (mesmo que o diretório de entrada)
-    output_filename = 'TRUE_COLOR.tif'
+    output_filename = f'TRUE_COLOR_{Path(input_path).name}.tif'
 
     output_file_path = os.path.join(output_dir, output_filename)
 
