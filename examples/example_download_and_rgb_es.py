@@ -1,30 +1,33 @@
-import sys
-from pathlib import Path
+"""Download do ES inteiro seguido da composicao RGB."""
+
+from utils.download_arguments import city_download_params, require_rgb_bands
+from utils.download import bands_download
 from utils.rgb import rgb_batch_composite
-from .example_download_es import example_download_es
 
-# Sobe um nível para o diretório principal do projeto e adiciona ao path
-project_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(project_dir)
 
-def run():
-    return example_download_and_rgb_es()
+def run(bands_code=None):
+    try:
+        return example_download_and_rgb_es(bands_code)
+    except ValueError as error:
+        print(error)
+        return None
 
-def example_download_and_rgb_es():
 
-    # Download de bandas
-    bands_path = example_download_es(bands=['red', 'green', 'blue', 'nir'])
+def example_download_and_rgb_es(bands_code):
+    params = city_download_params("ES", bands_code)
+    require_rgb_bands(params["bands"])
+    print(
+        f"Iniciando download para {params['location_name']} ({params['location_code']}). "
+        f"Bandas: {', '.join(params['bands'])}. Limite de {params['max_products']} cena(s)."
+    )
+    bands_path = bands_download(params)
+    print(f"Download finalizado! Arquivos salvos em: {params['output_dir']}")
 
-    # Composição RGB
-    # Nome completo do arquivo de saída
-    output_file_path = './images'
+    print("Iniciando composicao RGB.")
+    rgb_paths = rgb_batch_composite(bands_path, params["output_dir"])
+    print(f"Composicoes salvas nas pastas das cenas: {params['output_dir']}")
+    return rgb_paths
 
-    # Chamada da função para compor a imagem RGB
-    print(f"Iniciando composição RGB.")
-
-    rgb_batch_composite(bands_path, output_file_path)
-
-    print(f"Processo concluído! Composições salvas em: {output_file_path}")
 
 if __name__ == "__main__":
-    example_download_and_rgb_es()
+    run()

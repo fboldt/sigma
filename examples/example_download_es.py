@@ -1,66 +1,27 @@
-import sys
-from pathlib import Path
-
-# Sobe um nível para o diretório principal do projeto e adiciona ao path
-project_dir = str(Path(__file__).resolve().parent.parent)
-sys.path.append(project_dir)
+"""Download do Espirito Santo inteiro com bandas informadas no comando."""
 
 from utils.download import bands_download
-from datetime import date
-import requests
-from shapely.geometry import shape, Polygon
-import os
-from dotenv import load_dotenv
-load_dotenv()
-email_inpe = os.getenv("EMAIL_INPE")
+from utils.download_arguments import city_download_params
 
-def run():
-    return example_download_es()
 
-def example_download_es(bands=['red', 'green', 'blue', 'nir', 'pan']):
+def run(bands_code=None):
+    try:
+        return example_download_es(bands_code)
+    except ValueError as error:
+        print(error)
+        return None
 
-    # Usuário cadastrado na plataforma do INPE
-    user = email_inpe
-        
-    # Polígono do local de busca
-    # Localização: Espírito Santo (ES)
-    url = "https://servicodados.ibge.gov.br/api/v4/malhas/estados/32?formato=application/vnd.geo+json&qualidade=minima" # URL do Query Builder na API do IBGE
-    response = requests.get(url) 
-    data = response.json() 
-    polygon = shape(data['features'][0]['geometry'])
-    
-    # Especificações dos produtos a retornar
-    max_cloud = 10            # Cobertura de nuvens (max)
-    max_products =  1         # Número de cenas por Dataset (max)
 
-    # Intervalo para data da busca
-    initial_date = date(2025, 1, 1)      # ano, mês, dia
-    final_date = date(2025, 12, 31)      # ano, mês, dia
-
-    # Diretório para download das bandas
-    output_dir = './images'
-
-    # Dicionário com as informações
-    params = {
-        'user': user,
-        'bbox': Polygon(polygon),
-        'max_cloud': max_cloud,
-        'max_products': max_products,
-        'initial_date': initial_date,
-        'final_date': final_date,
-        'bands': bands,                  # Por padrão, baixa todas as bandas (red, green, blue, NIR e PAN), mas pode ser definida pelo usuário
-        'output_dir': output_dir
-    }
-
-    print(f"Iniciando download das bandas. Limite de {max_products} cena(s).")
-
-    # Chamada da função bands_download
+def example_download_es(bands_code):
+    params = city_download_params("ES", bands_code)
+    print(
+        f"Iniciando download para {params['location_name']} ({params['location_code']}). "
+        f"Bandas: {', '.join(params['bands'])}. Limite de {params['max_products']} cena(s)."
+    )
     result = bands_download(params)
-
-    print(f"Download finalizado! Arquivos salvos em: {output_dir}")
-
-    # Retorno da função
+    print(f"Download finalizado! Arquivos salvos em: {params['output_dir']}")
     return result
 
+
 if __name__ == "__main__":
-    example_download_es()
+    run()

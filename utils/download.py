@@ -19,6 +19,7 @@ RANGE_DOWNLOAD_THRESHOLD = 256 * 1024 * 1024
 RANGE_DOWNLOAD_WORKERS = 4
 # Endpoint do INPE para buscar uma cena por ID (o mesmo que o cbers4asat usa).
 STAC_ITEM_URL = "https://www.dgi.inpe.br/lgi-stac/collections"
+BAND_NUMBERS = {"blue": 1, "green": 2, "red": 3, "nir": 4, "pan": 0}
 
 
 class RangeDownloadError(RuntimeError):
@@ -189,20 +190,34 @@ def _band_urls(feature, bands):
     return urls
 
 
+def _expected_band_paths(feature, bands, output_dir):
+    """Monta os caminhos locais das bandas sem consultar o catalogo novamente."""
+    properties = feature["properties"]
+    scene_prefix = (
+        f"CBERS_4A_WPM_{properties['datetime'][:10].replace('-', '')}_"
+        f"{properties['path']}_{properties['row']}_L4"
+    )
+    scene_dir = Path(output_dir) / feature["id"]
+    return {
+        band: scene_dir / f"{scene_prefix}_BAND{BAND_NUMBERS[band]}.tif"
+        for band in bands
+    }
+
+
 def _download_bands_parallel(products, bands, output_dir, email, workers):
     """Resolve os URLs das bandas e inicia todos os downloads em paralelo."""
     tasks = []
     for feature in products["features"]:
-        scene_dir = Path(output_dir) / feature["id"]
-        assets = _band_urls(feature, bands)
-        scene_tasks = [
-            (band, url, scene_dir / Path(url).name)
-            for band, url in assets.items()
-        ]
-        if all(path.is_file() for _, _, path in scene_tasks):
+        expected_paths = _expected_band_paths(feature, bands, output_dir)
+        if all(path.is_file() for path in expected_paths.values()):
             print(f"Cena ja baixada, download ignorado: {feature['id']}")
             continue
 
+        assets = _band_urls(feature, bands)
+        scene_tasks = [
+            (band, url, expected_paths[band])
+            for band, url in assets.items()
+        ]
         missing = [task for task in scene_tasks if not task[2].is_file()]
         if len(missing) != len(scene_tasks):
             print(f"Cena parcialmente baixada; baixando bandas ausentes: {feature['id']}")
@@ -283,18 +298,11 @@ def bands_paths(output_dir, produtos, bands=None):
 
         scene_dir = scene_dir_list[0]
         
-        # Prefixo para os nomes dos arquivos contendo as bandas
-        scene_id_prefix = f"CBERS_4A_WPM_{produto_info['properties']['datetime'][:10].replace('-', '')}_{produto_info['properties']['path']}_{produto_info['properties']['row']}_L4"
-        
-        band_numbers = {'blue': 1, 'green': 2, 'red': 3, 'nir': 4, 'pan': 0}
         requested_bands = bands or ['red', 'green', 'blue', 'nir', 'pan']
         scene_paths = {'id': produto_id}
-        for band in requested_bands:
-            if band not in band_numbers:
-                raise ValueError(f"Banda desconhecida: {band}")
-            scene_paths[band] = os.path.join(
-                scene_dir, f"{scene_id_prefix}_BAND{band_numbers[band]}.tif"
-            )
+        expected_paths = _expected_band_paths(produto_info, requested_bands, output_dir)
+        for band, path in expected_paths.items():
+            scene_paths[band] = str(path)
 
         # Retorna somente as bandas solicitadas pelo chamador.
         all_bands_paths.append(scene_paths)
