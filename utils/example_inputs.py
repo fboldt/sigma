@@ -1,7 +1,7 @@
 """Mensagens de validacao de entradas usadas pelos exemplos locais."""
 from pathlib import Path
 
-DOWNLOAD_COMMAND = "python run_example.py example_download"
+DOWNLOAD_COMMAND = "python run_example.py download_scene"
 
 def require_files(example_name, required_paths, download_command=DOWNLOAD_COMMAND):
     """Interrompe um exemplo com os arquivos ausentes e um comando de teste."""

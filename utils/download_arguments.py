@@ -98,5 +98,5 @@ def require_rgb_bands(bands):
     raise ValueError(
         "A composicao RGB exige as bandas red, green e blue.\n"
         "Use rgb, rgbn, rgbp ou rgbpn.\n"
-        "Exemplo: python run.py example_download_and_rgb VIX rgbpn"
+        "Exemplo: python run.py download_and_compose_scene VIX rgbpn"
     )

@@ -5,15 +5,14 @@ Central catalog of available example modules.
 Each entry maps a string key to its corresponding example implementation.
 """
 from examples import (
+    download_and_compose_scene,
     download_scene,
     echo,
-    example_download_and_rgb,
     pansharpening_scene,
     python_version,
     state_outline,
     sum,
     example_download_and_rgb_es,
-    example_download_es,
     example_mosaic,
     example_piramide,
     example_rgb,
@@ -28,13 +27,12 @@ available_examples = {
     "sum": sum,  # exemplo com dois parametros
     "download_scene": download_scene,
     "state_outline": state_outline,
-    "example_download_and_rgb": example_download_and_rgb,
+    "download_and_compose_scene": download_and_compose_scene,
     "example_download_and_rgb_es": example_download_and_rgb_es,
-    "example_download_es": example_download_es,
     "example_mosaic": example_mosaic,
     "example_piramide": example_piramide,
     "example_rgb": example_rgb,
     "pansharpening_scene": pansharpening_scene,
     "example_workflow": example_workflow,
-    
+
 }
