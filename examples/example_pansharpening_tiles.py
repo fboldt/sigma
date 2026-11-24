@@ -1,11 +1,5 @@
 """Pansharpening por tiles a partir da pasta de uma cena CBERS."""
-import sys
 from pathlib import Path
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 from utils.definir_tile import definir_tamanho_tile
 from utils.example_inputs import require_directory, require_files
@@ -21,12 +15,12 @@ def run(scene_directory=None):
     """Gera PANSHARP usando a PAN da cena e o TRUE_COLOR ja' composto.
 
     Exemplo:
-        python run_example.py example_pansharpening_tiles ./images/CENA
+        python run.py example_pansharpening_tiles ./images/CENA
     """
     if scene_directory is None:
         raise ValueError(
             "Informe a pasta da cena. Exemplo:\n"
-            "python run_example.py example_pansharpening_tiles "
+            "python run.py example_pansharpening_tiles "
             "./images/CBERS4A_WPM19513820250609ETC2"
         )
 
@@ -41,8 +35,8 @@ def run(scene_directory=None):
         [rgb_path, pan_path],
     )
 
-    output_path = PROJECT_ROOT / "images" / f"PANSHARP_{scene_id}.tif"
-    temp_dir = PROJECT_ROOT / "images" / "pansharpening_tiles_temp"
+    output_path = Path("images") / f"PANSHARP_{scene_id}.tif"
+    temp_dir = Path("images") / "pansharpening_tiles_temp"
     tile_size = definir_tamanho_tile()
 
     print(f"[*] TRUE_COLOR: {rgb_path}")
@@ -60,4 +54,4 @@ def run(scene_directory=None):
 
 
 if __name__ == "__main__":
-    run(sys.argv[1] if len(sys.argv) > 1 else None)
+    run()
