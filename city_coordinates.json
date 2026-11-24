@@ -1,4 +1,12 @@
 {
+    "ES": {
+        "city": "Espírito Santo",
+        "west": -41.8797,
+        "south": -21.3017,
+        "east": -39.6653,
+        "north": -17.8919
+
+    },
     "DMA": {
         "city": "Domingos Martins",
         "west": -41.1368,
@@ -526,10 +534,10 @@
     },
     "VIX": {
         "city": "Vitória",
-        "west": -40.3623,
-        "south": -20.5279,
-        "east": -28.8476,
-        "north": -20.2292
+        "west": -40.3616,
+        "south": -20.3269,
+        "east": -40.2149,
+        "north": -20.2374
     },
     "ADN": {
         "city": "Água Doce do Norte",
