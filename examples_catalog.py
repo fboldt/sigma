@@ -8,7 +8,7 @@ from examples import (
     download_scene,
     echo,
     example_download_and_rgb,
-    example_pansharpening_tiles,
+    pansharpening_scene,
     python_version,
     state_outline,
     sum,
@@ -34,6 +34,7 @@ available_examples = {
     "example_mosaic": example_mosaic,
     "example_piramide": example_piramide,
     "example_rgb": example_rgb,
-    "example_pansharpening_tiles": example_pansharpening_tiles,
+    "pansharpening_scene": pansharpening_scene,
     "example_workflow": example_workflow,
+    
 }
